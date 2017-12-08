@@ -6,10 +6,8 @@ public class Main {
 
         ImageOverlay overlay = new ImageOverlay(null);
 
-        BufferedImage frg = overlay.readImage("./smallred.jpg");
-
         overlay.loadBackground("large.jpg");
-        overlay.overlayImages(frg);
+        overlay.drawBlock("questionblock");
 
         overlay.writeImage("out.jpg", "JPG");
 
