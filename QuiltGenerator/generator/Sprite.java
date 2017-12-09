@@ -3,27 +3,11 @@ package generator;
 import java.awt.Color;
 
 public class Sprite {
-	
-	private int id;
-	private int x = -1, y = -1;
-	
-	/**
-	 * Construct sprite with the given ID
-	 * @param ID The ID value to assign to the sprite
-	 */
-	public Sprite(int ID){
-		id = ID;
-	}
-	
-	/**
-	 * Get the sprite ID
-	 * @return sprite ID
-	 */
-	public int getID(){
-		return id;
-	}
-	//MARIO
+	////////////////BLOCK IDS
+	////MARIO
 	public static final int ID_MARIO = -1;
+	
+	////SPECIAL BLOCKS
 	//AIR
 	public static final int ID_AIR = 0;
 	//FACE BLOCKS
@@ -74,7 +58,7 @@ public class Sprite {
 	public static final int ID_PIPE_VERTI_BL = 52;
 	public static final int ID_PIPE_VERTI_BR = 53;
 	
-	////Colors
+	////////////////Colors
 	public static final Color COLOR_BORDER = new Color(255,0,110);
 	//Mario
 	public static final Color COLOR_MARIO_RED = new Color(255,55,32); //E13720
@@ -82,10 +66,10 @@ public class Sprite {
 	public static final Color COLOR_MARIO_HAIR = new Color(0,0,0); //000000
 	public static final Color COLOR_MARIO_BLUE = new Color(64,128,152); //408098
 	public static final Color COLOR_MARIO_SHOES = new Color(136,88,24); //885818
-	//Question Mark
+	//Question Block
 	public static final Color COLOR_QUESTIONMARK_DIAMOND = new Color(64,64,64); //404040
 	public static final Color COLOR_QUESTIONMARK_BG = new Color(253,214,0); //FDD600
-	//Pipe
+	//Pipes
 	public static final Color COLOR_PIPE_LIGHT = new Color(195,255,29); //C3FF1D
 	public static final Color COLOR_PIPE_GREEN = new Color(80,205,0); //50CD00
 	public static final Color COLOR_PIPE_DARK = new Color(27,147,19); //1B9313

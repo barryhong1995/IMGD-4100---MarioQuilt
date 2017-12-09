@@ -1092,6 +1092,11 @@ public class QuiltGenerator {
 	}
 	
 	
+	/**
+	 * Draw the cap of a vertical pipe from the left
+	 * @param X The x coordinate of the left of the cap
+	 * @param Y The y coordinate of the left of the cap
+	 */
 	private void drawVerticalPipeEnd(int X, int Y){
 		int DRAW_X = X * BLOCKSIZE, DRAW_Y = Y * BLOCKSIZE;
 		int END_X = DRAW_X + BLOCKSIZE, END_Y = DRAW_Y + BLOCKSIZE;
@@ -1118,6 +1123,44 @@ public class QuiltGenerator {
 		for (Polygon shape : darkGreen){ drawShape(shape, Sprite.COLOR_PIPE_DARK, Sprite.COLOR_BORDER); }
 	}
 	
+	/**
+	 * Draw the cap of a horizontal pipe from the bottom
+	 * @param X The x coordinate of the bottom of the cap
+	 * @param Y The y coordinate of the bottom of the cap
+	 */
+	private void drawHorizontalPipeEnd(int X, int Y){
+		int DRAW_X = X * BLOCKSIZE, DRAW_Y = Y * BLOCKSIZE;
+		int MID_X = (X * BLOCKSIZE)+HALF_BLOCKSIZE;
+		int END_X = DRAW_X + BLOCKSIZE, END_Y = DRAW_Y + BLOCKSIZE;
+		
+		ArrayList<Polygon> lightGreen = new ArrayList<Polygon>(), green = new ArrayList<Polygon>(),
+				darkGreen = new ArrayList<Polygon>();
+		
+		//Top of the pipe (LIGHT)
+		int[] x_top_light = {DRAW_X,MID_X,DRAW_X};
+		int[] y_top_light = {(DRAW_Y-BLOCKSIZE),(DRAW_Y-BLOCKSIZE),END_Y};
+		lightGreen.add(new Polygon(x_top_light,y_top_light,3));
+		//Top of the pipe (MEDIUM)
+		int[] x_top_med = {DRAW_X,MID_X,END_X,MID_X};
+		int[] y_top_med = {END_Y,(DRAW_Y-BLOCKSIZE),(DRAW_Y-BLOCKSIZE),END_Y};
+		green.add(new Polygon(x_top_med,y_top_med,4));
+		//Top of the pipe (DARK)
+		int[] x_top_dark = {MID_X,END_X,END_X};
+		int[] y_top_dark = {END_Y,END_Y,(DRAW_Y-BLOCKSIZE)};
+		darkGreen.add(new Polygon(x_top_dark,y_top_dark,3));
+		
+		//Draw The Pipe
+		for (Polygon shape : lightGreen){ drawShape(shape, Sprite.COLOR_PIPE_LIGHT, Sprite.COLOR_BORDER); }
+		for (Polygon shape : green){ drawShape(shape, Sprite.COLOR_PIPE_GREEN, Sprite.COLOR_BORDER); }
+		for (Polygon shape : darkGreen){ drawShape(shape, Sprite.COLOR_PIPE_DARK, Sprite.COLOR_BORDER); }
+	}
+	
+	/**
+	 * Draw a Vertical Pipe from the bottom left corner
+	 * @param X The x coordinate of the bottom left corner
+	 * @param Y The y coordinate of the bottom right corner
+	 * @param HEIGHT The height of the pipe
+	 */
 	private void drawVerticalPipe(int X, int Y, int HEIGHT){
 		int DRAW_X = X * BLOCKSIZE, DRAW_Y = Y * BLOCKSIZE;
 		int END_X = DRAW_X + BLOCKSIZE, END_Y = DRAW_Y + BLOCKSIZE;
@@ -1137,6 +1180,40 @@ public class QuiltGenerator {
 		//Body of the pipe (DARK)
 		int[] x_body_dark = {(END_X+BLOCKSIZE-EIGTH_BLOCKSIZE),(END_X+BLOCKSIZE-EIGTH_BLOCKSIZE),END_X};
 		int[] y_body_dark = {(TOP+BLOCKSIZE),END_Y,END_Y};
+		darkGreen.add(new Polygon(x_body_dark,y_body_dark,3));
+		
+		//Draw The Pipe
+		for (Polygon shape : lightGreen){ drawShape(shape, Sprite.COLOR_PIPE_LIGHT, Sprite.COLOR_BORDER); }
+		for (Polygon shape : green){ drawShape(shape, Sprite.COLOR_PIPE_GREEN, Sprite.COLOR_BORDER); }
+		for (Polygon shape : darkGreen){ drawShape(shape, Sprite.COLOR_PIPE_DARK, Sprite.COLOR_BORDER); }
+	}
+	
+	/**
+	 * Draw a Horizontal Pipe starting from the bottom right corner
+	 * @param X The x coordinate of the bottom right corner
+	 * @param Y The y coordinate of the bottom right corner
+	 * @param LENGTH The length of the pipe
+	 */
+	private void drawHorizontalPipe(int X, int Y, int LENGTH){
+		int DRAW_X = X * BLOCKSIZE, DRAW_Y = Y * BLOCKSIZE;
+		int END_X = DRAW_X + BLOCKSIZE, END_Y = DRAW_Y + BLOCKSIZE;
+		int SIDE_X = (X - LENGTH)*BLOCKSIZE + BLOCKSIZE;
+		int MID_X = SIDE_X + (int)((LENGTH/2.0)*BLOCKSIZE);
+		
+		ArrayList<Polygon> lightGreen = new ArrayList<Polygon>(), green = new ArrayList<Polygon>(),
+				darkGreen = new ArrayList<Polygon>();
+		
+		//Body of the pipe (LIGHT)
+		int[] x_body_light = {SIDE_X,MID_X,SIDE_X};
+		int[] y_body_light = {(DRAW_Y-BLOCKSIZE+EIGTH_BLOCKSIZE),(DRAW_Y-BLOCKSIZE+EIGTH_BLOCKSIZE),(END_Y-EIGTH_BLOCKSIZE)};
+		lightGreen.add(new Polygon(x_body_light,y_body_light,3));
+		//Body of the pipe (MEDIUM)
+		int[] x_body_med = {SIDE_X,MID_X,END_X,MID_X};
+		int[] y_body_med = {(END_Y-EIGTH_BLOCKSIZE),(DRAW_Y-BLOCKSIZE+EIGTH_BLOCKSIZE),(DRAW_Y-BLOCKSIZE+EIGTH_BLOCKSIZE),(END_Y-EIGTH_BLOCKSIZE)};
+		green.add(new Polygon(x_body_med,y_body_med,4));
+		//Body of the pipe (DARK)
+		int[] x_body_dark = {MID_X,END_X,END_X};
+		int[] y_body_dark = {(END_Y-EIGTH_BLOCKSIZE),(END_Y-EIGTH_BLOCKSIZE),(DRAW_Y-BLOCKSIZE+EIGTH_BLOCKSIZE)};
 		darkGreen.add(new Polygon(x_body_dark,y_body_dark,3));
 		
 		//Draw The Pipe
@@ -1194,7 +1271,7 @@ public class QuiltGenerator {
 				if (y > 1 && x < level[0].length-1 && level[y-2][x+1] == thisID){ up_upright = true; } //UPUPRIGHT
 				
 				switch(thisID){
-				case Sprite.ID_QUESTION_BLOCK:
+				case Sprite.ID_QUESTION_BLOCK: //When a question block is discovered
 					if (VERBOSE > 0) System.out.println("Question Block at (" + y + "," + x + ")");
 					drawQuestionBlock(x,y,ADJ,up_upright);
 					break;
@@ -1203,15 +1280,12 @@ public class QuiltGenerator {
 					marioX = x;
 					marioY = y;
 					break;
-				case Sprite.ID_PIPE_VERTI_TL:
+				case Sprite.ID_PIPE_VERTI_TL: //When the cap of a vertical pipe is discovered
 				case Sprite.ID_PIPE_VERTI_BL:
+					if (VERBOSE > 0) System.out.println("Left of Vertical Pipe Cap at (" + y + "," + x + ")");
 					drawVerticalPipeEnd(x,y);
 					break;
-				case Sprite.ID_PIPE_VERTI_TR:
-				case Sprite.ID_PIPE_VERTI_MR:
-				case Sprite.ID_PIPE_VERTI_BR:
-					break;
-				case Sprite.ID_PIPE_VERTI_ML:
+				case Sprite.ID_PIPE_VERTI_ML: //When the left part of a vertical pipe body is discovered
 					int tempY = y;
 					int tempHeight = 1;
 					while(tempY > 0 && level[tempY-1][x] == Sprite.ID_PIPE_VERTI_ML){
@@ -1219,6 +1293,27 @@ public class QuiltGenerator {
 						tempY--;
 					}
 					drawVerticalPipe(x,y,tempHeight);
+					break;
+				case Sprite.ID_PIPE_VERTI_TR: //This pipe will be drawn over but should not act as air
+				case Sprite.ID_PIPE_VERTI_MR: //This pipe will be drawn over but should not act as air
+				case Sprite.ID_PIPE_VERTI_BR: //This pipe will be drawn over but should not act as air
+					break;
+				case Sprite.ID_PIPE_HORIZ_BL: //When the cap of a horizontal pipe is discovered
+				case Sprite.ID_PIPE_HORIZ_BR:
+					if (VERBOSE > 0) System.out.println("Bottom of Horizontal Pipe Cap at (" + y + "," + x + ")");
+					drawHorizontalPipeEnd(x,y);
+					break;
+				case Sprite.ID_PIPE_HORIZ_BM: //When the bottom part of a horizontal pipe body is discovered
+					int tempX = x;
+					int tempLength = 1;
+					while (tempX > 0 && level[y][tempX-1] == Sprite.ID_PIPE_HORIZ_BM){
+						tempLength++;
+						tempX--;
+					}
+					drawHorizontalPipe(x,y,tempLength);
+				case Sprite.ID_PIPE_HORIZ_TL: //This pipe will be drawn over but should not act as air
+				case Sprite.ID_PIPE_HORIZ_TM: //This pipe will be drawn over but should not act as air
+				case Sprite.ID_PIPE_HORIZ_TR: //This pipe will be drawn over but should not act as air
 					break;
 				case Sprite.ID_AIR:
 				default:
@@ -1261,11 +1356,17 @@ public class QuiltGenerator {
 		LEVEL[3][1] = q;	LEVEL[3][2] = q;	LEVEL[3][3] = q;
 		
 		LEVEL[8][2] = m;
-		
+		//Pipe going up
 		LEVEL[6][6] = Sprite.ID_PIPE_VERTI_TL; LEVEL[6][7] = Sprite.ID_PIPE_VERTI_TR;
 		LEVEL[7][6] = Sprite.ID_PIPE_VERTI_ML; LEVEL[7][7] = Sprite.ID_PIPE_VERTI_MR;
 		LEVEL[8][6] = Sprite.ID_PIPE_VERTI_ML; LEVEL[8][7] = Sprite.ID_PIPE_VERTI_MR;
-		
+		//Pipe going left
+		LEVEL[2][7] = Sprite.ID_PIPE_HORIZ_TL; LEVEL[2][8] = Sprite.ID_PIPE_HORIZ_TM; LEVEL[2][9] = Sprite.ID_PIPE_HORIZ_TM;
+		LEVEL[3][7] = Sprite.ID_PIPE_HORIZ_BL; LEVEL[3][8] = Sprite.ID_PIPE_HORIZ_BM; LEVEL[3][9] = Sprite.ID_PIPE_HORIZ_BM;
+		//Pipe going right
+		LEVEL[4][7] = Sprite.ID_PIPE_HORIZ_TM; LEVEL[4][8] = Sprite.ID_PIPE_HORIZ_TM; LEVEL[5][9] = Sprite.ID_PIPE_HORIZ_TR;
+		LEVEL[5][7] = Sprite.ID_PIPE_HORIZ_BM; LEVEL[5][8] = Sprite.ID_PIPE_HORIZ_BM; LEVEL[5][9] = Sprite.ID_PIPE_HORIZ_BR;		
+		//Pipe going down
 		LEVEL[6][8] = Sprite.ID_PIPE_VERTI_ML; LEVEL[6][9] = Sprite.ID_PIPE_VERTI_MR;
 		LEVEL[7][8] = Sprite.ID_PIPE_VERTI_ML; LEVEL[7][9] = Sprite.ID_PIPE_VERTI_MR;
 		LEVEL[8][8] = Sprite.ID_PIPE_VERTI_BL; LEVEL[8][9] = Sprite.ID_PIPE_VERTI_BR;
