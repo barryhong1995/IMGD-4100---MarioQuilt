@@ -17,6 +17,7 @@ public class QuiltGenerator {
 	private final static int BLOCKSIZE = PIXELS_PER_COORDINATE * DRAWING_SCALE;
 	private final static int HALF_BLOCKSIZE = BLOCKSIZE/2;
 	private final static int QUARTER_BLOCKSIZE = BLOCKSIZE/4;
+	private final static int EIGTH_BLOCKSIZE = BLOCKSIZE/8;
 		
 	private int[][] level;
 	private int world = 0;
@@ -1091,6 +1092,59 @@ public class QuiltGenerator {
 	}
 	
 	
+	private void drawVerticalPipeEnd(int X, int Y){
+		int DRAW_X = X * BLOCKSIZE, DRAW_Y = Y * BLOCKSIZE;
+		int END_X = DRAW_X + BLOCKSIZE, END_Y = DRAW_Y + BLOCKSIZE;
+		
+		ArrayList<Polygon> lightGreen = new ArrayList<Polygon>(), green = new ArrayList<Polygon>(),
+				darkGreen = new ArrayList<Polygon>();
+		
+		//Top of the pipe (LIGHT)
+		int[] x_top_light = {DRAW_X,END_X,DRAW_X};
+		int[] y_top_light = {DRAW_Y,DRAW_Y,END_Y};
+		lightGreen.add(new Polygon(x_top_light,y_top_light,3));
+		//Top of the pipe (MEDIUM)
+		int[] x_top_med = {DRAW_X,END_X,(END_X+BLOCKSIZE),END_X};
+		int[] y_top_med = {END_Y,END_Y,DRAW_Y,DRAW_Y};
+		green.add(new Polygon(x_top_med,y_top_med,4));
+		//Top of the pipe (DARK)
+		int[] x_top_dark = {(END_X+BLOCKSIZE),(END_X+BLOCKSIZE),END_X};
+		int[] y_top_dark = {DRAW_Y,END_Y,END_Y};
+		darkGreen.add(new Polygon(x_top_dark,y_top_dark,3));
+		
+		//Draw The Pipe
+		for (Polygon shape : lightGreen){ drawShape(shape, Sprite.COLOR_PIPE_LIGHT, Sprite.COLOR_BORDER); }
+		for (Polygon shape : green){ drawShape(shape, Sprite.COLOR_PIPE_GREEN, Sprite.COLOR_BORDER); }
+		for (Polygon shape : darkGreen){ drawShape(shape, Sprite.COLOR_PIPE_DARK, Sprite.COLOR_BORDER); }
+	}
+	
+	private void drawVerticalPipe(int X, int Y, int HEIGHT){
+		int DRAW_X = X * BLOCKSIZE, DRAW_Y = Y * BLOCKSIZE;
+		int END_X = DRAW_X + BLOCKSIZE, END_Y = DRAW_Y + BLOCKSIZE;
+		int TOP = (Y - HEIGHT)*BLOCKSIZE;
+		
+		ArrayList<Polygon> lightGreen = new ArrayList<Polygon>(), green = new ArrayList<Polygon>(),
+				darkGreen = new ArrayList<Polygon>();
+		
+		//Body of the pipe (LIGHT)
+		int[] x_body_light = {(DRAW_X+EIGTH_BLOCKSIZE),END_X,(DRAW_X+EIGTH_BLOCKSIZE)};
+		int[] y_body_light = {(TOP+BLOCKSIZE),(TOP+BLOCKSIZE),END_Y};
+		lightGreen.add(new Polygon(x_body_light,y_body_light,3));
+		//Body of the pipe (MEDIUM)
+		int[] x_body_med = {(DRAW_X+EIGTH_BLOCKSIZE),END_X,(END_X+BLOCKSIZE-EIGTH_BLOCKSIZE),END_X};
+		int[] y_body_med = {END_Y,END_Y,(TOP+BLOCKSIZE),(TOP+BLOCKSIZE)};
+		green.add(new Polygon(x_body_med,y_body_med,4));
+		//Body of the pipe (DARK)
+		int[] x_body_dark = {(END_X+BLOCKSIZE-EIGTH_BLOCKSIZE),(END_X+BLOCKSIZE-EIGTH_BLOCKSIZE),END_X};
+		int[] y_body_dark = {(TOP+BLOCKSIZE),END_Y,END_Y};
+		darkGreen.add(new Polygon(x_body_dark,y_body_dark,3));
+		
+		//Draw The Pipe
+		for (Polygon shape : lightGreen){ drawShape(shape, Sprite.COLOR_PIPE_LIGHT, Sprite.COLOR_BORDER); }
+		for (Polygon shape : green){ drawShape(shape, Sprite.COLOR_PIPE_GREEN, Sprite.COLOR_BORDER); }
+		for (Polygon shape : darkGreen){ drawShape(shape, Sprite.COLOR_PIPE_DARK, Sprite.COLOR_BORDER); }
+	}
+	
 	/**
 	 * Draw a shape on the canvas
 	 * @param POLY The shape to draw
@@ -1149,6 +1203,23 @@ public class QuiltGenerator {
 					marioX = x;
 					marioY = y;
 					break;
+				case Sprite.ID_PIPE_VERTI_TL:
+				case Sprite.ID_PIPE_VERTI_BL:
+					drawVerticalPipeEnd(x,y);
+					break;
+				case Sprite.ID_PIPE_VERTI_TR:
+				case Sprite.ID_PIPE_VERTI_MR:
+				case Sprite.ID_PIPE_VERTI_BR:
+					break;
+				case Sprite.ID_PIPE_VERTI_ML:
+					int tempY = y;
+					int tempHeight = 1;
+					while(tempY > 0 && level[tempY-1][x] == Sprite.ID_PIPE_VERTI_ML){
+						tempHeight++;
+						tempY--;
+					}
+					drawVerticalPipe(x,y,tempHeight);
+					break;
 				case Sprite.ID_AIR:
 				default:
 					int[] xTemp = {x*BLOCKSIZE,x*BLOCKSIZE,(x+1)*BLOCKSIZE,(x+1)*BLOCKSIZE};
@@ -1190,6 +1261,14 @@ public class QuiltGenerator {
 		LEVEL[3][1] = q;	LEVEL[3][2] = q;	LEVEL[3][3] = q;
 		
 		LEVEL[8][2] = m;
+		
+		LEVEL[6][6] = Sprite.ID_PIPE_VERTI_TL; LEVEL[6][7] = Sprite.ID_PIPE_VERTI_TR;
+		LEVEL[7][6] = Sprite.ID_PIPE_VERTI_ML; LEVEL[7][7] = Sprite.ID_PIPE_VERTI_MR;
+		LEVEL[8][6] = Sprite.ID_PIPE_VERTI_ML; LEVEL[8][7] = Sprite.ID_PIPE_VERTI_MR;
+		
+		LEVEL[6][8] = Sprite.ID_PIPE_VERTI_ML; LEVEL[6][9] = Sprite.ID_PIPE_VERTI_MR;
+		LEVEL[7][8] = Sprite.ID_PIPE_VERTI_ML; LEVEL[7][9] = Sprite.ID_PIPE_VERTI_MR;
+		LEVEL[8][8] = Sprite.ID_PIPE_VERTI_BL; LEVEL[8][9] = Sprite.ID_PIPE_VERTI_BR;
 		
 		QuiltGenerator qG = new QuiltGenerator(LEVEL);
 		qG.generate(VERBOSE);

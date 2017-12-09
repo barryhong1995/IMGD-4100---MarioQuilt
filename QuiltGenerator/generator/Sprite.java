@@ -85,5 +85,9 @@ public class Sprite {
 	//Question Mark
 	public static final Color COLOR_QUESTIONMARK_DIAMOND = new Color(64,64,64); //404040
 	public static final Color COLOR_QUESTIONMARK_BG = new Color(253,214,0); //FDD600
+	//Pipe
+	public static final Color COLOR_PIPE_LIGHT = new Color(195,255,29); //C3FF1D
+	public static final Color COLOR_PIPE_GREEN = new Color(80,205,0); //50CD00
+	public static final Color COLOR_PIPE_DARK = new Color(27,147,19); //1B9313
 	
 }
