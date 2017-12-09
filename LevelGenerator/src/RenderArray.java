@@ -19,38 +19,84 @@ public class RenderArray {
     }
 
     public void buildRenderArray(TestArray tArray){
-        for(int i = 0; i < TestArray.LEVEL_WIDTH; i++){
-            for(int j = 0; j < TestArray.LEVEL_HEIGHT; j++) {
-                switch (tArray.getVal(i, j)) {
+        for(int i = 0; i < TestArray.LEVEL_HEIGHT; i++){
+            for(int j = 0; j < TestArray.LEVEL_WIDTH; j++) {
+                switch (tArray.getVal(j, i)) {
+                    case TestArray.PLATFORM:
+                        handlePlatform(tArray, j, i);
+                        break;
                     case TestArray.GROUND:
-                        handleGround(tArray, i, j);
+                        handleGround(tArray, j, i);
                         break;
                 }
             }
         }
     }
 
+    public int checkNeighbors(TestArray tArray, int x, int y){
+
+        int result = 0x0;
+
+        if(tArray.getVal(x-1, y) == TestArray.GROUND){ result |= 0x1; }
+        if(tArray.getVal(x+1, y) == TestArray.GROUND){ result |= 0x2; }
+        if(tArray.getVal(x, y-1) == TestArray.GROUND){ result |= 0x4; }
+        if(tArray.getVal(x, y+1) == TestArray.GROUND){ result |= 0x8; }
+        if(tArray.getVal(x-1, y-1) != TestArray.GROUND){ result |= 0x10; }
+        if(tArray.getVal(x+1, y-1) != TestArray.GROUND){ result |= 0x20; }
+        if(tArray.getVal(x-1, y+1) != TestArray.GROUND){ result |= 0x40; }
+        if(tArray.getVal(x+1, y+1) != TestArray.GROUND){ result |= 0x80; }
+
+
+        return result;
+
+    }
+
+
+
     public void handleGround(TestArray tArray, int x, int y){
-        if(     tArray.getVal(x-1, y) == TestArray.GROUND &&
-                tArray.getVal(x+1, y) == TestArray.GROUND){
-            this.setVal(x, y, 161);
-            drawToBottom(164, x, y);
-        }
-        else if(tArray.getVal(x-1, y) == TestArray.GROUND &&
-                tArray.getVal(x+1, y) != TestArray.GROUND){
-            this.setVal(x, y, 153);
-            drawToBottom(155, x, y);
-        }
-        else if(tArray.getVal(x-1, y) != TestArray.GROUND &&
-                tArray.getVal(x+1, y) == TestArray.GROUND){
-            this.setVal(x, y, 152);
-            drawToBottom(154, x, y);
+
+        int ch = checkNeighbors(tArray, x, y);
+        int adj = ch & 0xf;
+        int crn = (ch & 0xf0) >> 4;
+
+        switch(adj){
+            case 0xb:
+                this.setVal(x, y, 161);
+                break;
+            case 0x9:
+                this.setVal(x, y, 153);
+                break;
+            case 0xa:
+                this.setVal(x, y, 152);
+                break;
+            case 0xe:
+                this.setVal(x, y, 154);
+                break;
+            case 0xd:
+                this.setVal(x, y, 155);
+                break;
+            default:
+                System.out.println(crn);
+                switch(crn){
+                    case 0x1:
+                        this.setVal(x, y, 219);
+                        break;
+                    case 0x2:
+                        this.setVal(x, y, 220);
+                        break;
+                    default:
+                        this.setVal(x, y, 164);
+                        break;
+
+                }
+                break;
         }
     }
 
-    public void drawToBottom(int id, int x, int y){
-        for(int j = y + 1; j < TestArray.LEVEL_HEIGHT; j++){
-            this.setVal(x, j, id);
+    public void handlePlatform(TestArray tArray, int x, int y){
+        this.setVal(x, y, 161);
+        for(int j = y+1; j < TestArray.LEVEL_HEIGHT; j++){
+            this.setVal(x, j, 164);
         }
     }
 

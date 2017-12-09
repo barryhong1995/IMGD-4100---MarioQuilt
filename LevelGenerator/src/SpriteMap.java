@@ -19,6 +19,9 @@ public class SpriteMap {
         map.put(161, new Coordinate(1, 10));
         map.put(164, new Coordinate(4, 10));
 
+        map.put(219, new Coordinate(11, 13));
+        map.put(220, new Coordinate(11, 14));
+
     }
 
     public Coordinate findCoords(int blockID){
