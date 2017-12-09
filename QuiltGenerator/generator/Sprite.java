@@ -22,7 +22,6 @@ public class Sprite {
 	public int getID(){
 		return id;
 	}
-
 	//MARIO
 	public static final int ID_MARIO = -1;
 	//AIR
@@ -77,6 +76,12 @@ public class Sprite {
 	
 	////Colors
 	public static final Color COLOR_BORDER = new Color(255,0,110);
+	//Mario
+	public static final Color COLOR_MARIO_RED = new Color(255,55,32); //E13720
+	public static final Color COLOR_MARIO_SKIN = new Color(248, 208, 192); //F8D0C0
+	public static final Color COLOR_MARIO_HAIR = new Color(0,0,0); //000000
+	public static final Color COLOR_MARIO_BLUE = new Color(64,128,152); //408098
+	public static final Color COLOR_MARIO_SHOES = new Color(136,88,24); //885818
 	//Question Mark
 	public static final Color COLOR_QUESTIONMARK_DIAMOND = new Color(64,64,64); //404040
 	public static final Color COLOR_QUESTIONMARK_BG = new Color(253,214,0); //FDD600

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import javax.imageio.ImageIO;
 
 public class QuiltGenerator {
+	
 	private final static int TL = 1, TM = 2, TR = 4, ML = 8, MR = 16, BL = 32, BM = 64, BR = 128;
 	
 	private final static int PIXELS_PER_COORDINATE = 16;
@@ -22,10 +23,6 @@ public class QuiltGenerator {
 	private BufferedImage output_image;
 	private Graphics2D g2D;
 	
-	private ArrayList<Polygon> shapeQueue;
-	private ArrayList<Color> fillQueue;
-	private ArrayList<Color> borderQueue;
-	
 	/**
 	 * Instantiate a new QuiltGenerator with the level LEVEL and default world = 0
 	 * @param LEVEL The level to generate a quilt from
@@ -36,9 +33,6 @@ public class QuiltGenerator {
 										LEVEL[0].length * BLOCKSIZE,
 										BufferedImage.TYPE_INT_RGB);
 		g2D = output_image.createGraphics();
-		shapeQueue = new ArrayList<Polygon>();
-		fillQueue = new ArrayList<Color>();
-		borderQueue = new ArrayList<Color>();
 	}
 	
 	/**
@@ -53,9 +47,6 @@ public class QuiltGenerator {
 				LEVEL[0].length * BLOCKSIZE,
 				BufferedImage.TYPE_INT_RGB);
 		g2D = output_image.createGraphics();
-		shapeQueue = new ArrayList<Polygon>();
-		fillQueue = new ArrayList<Color>();
-		borderQueue = new ArrayList<Color>();
 	}
 	
 	/**
@@ -94,16 +85,84 @@ public class QuiltGenerator {
 	 * @param Y The y coordinate to draw Mario at
 	 */
 	private void drawMario(int X, int Y){
-		return;
+		int DRAW_X = X * BLOCKSIZE, DRAW_Y = Y * BLOCKSIZE;
+		int MID_X = DRAW_X + HALF_BLOCKSIZE, MID_Y = DRAW_Y + HALF_BLOCKSIZE;
+		int END_X = DRAW_X + BLOCKSIZE, END_Y = DRAW_Y + BLOCKSIZE;
+		
+		ArrayList<Polygon> redShapes = new ArrayList<Polygon>(), blueShapes = new ArrayList<Polygon>(),
+				blackShapes = new ArrayList<Polygon>(), brownShapes = new ArrayList<Polygon>(),
+				skinShapes = new ArrayList<Polygon>();
+		
+		//Left hat triangle
+		int[] x_hatLeft = {DRAW_X,DRAW_X,MID_X};
+		int[] y_hatLeft = {(DRAW_Y-HALF_BLOCKSIZE),(DRAW_Y-BLOCKSIZE),(DRAW_Y-HALF_BLOCKSIZE-QUARTER_BLOCKSIZE)};
+		redShapes.add(new Polygon(x_hatLeft,y_hatLeft,3));	
+		//Middle hat triangle
+		int[] x_hatMid = {DRAW_X,MID_X,END_X};
+		int[] y_hatMid = {(DRAW_Y-BLOCKSIZE),(DRAW_Y-HALF_BLOCKSIZE-QUARTER_BLOCKSIZE),(DRAW_Y-BLOCKSIZE)};
+		redShapes.add(new Polygon(x_hatMid,y_hatMid,3));
+		//Right hat triangle
+		int[] x_hatRight = {END_X,END_X,MID_X};
+		int[] y_hatRight = {(DRAW_Y-HALF_BLOCKSIZE),(DRAW_Y-BLOCKSIZE),(DRAW_Y-HALF_BLOCKSIZE-QUARTER_BLOCKSIZE)};
+		redShapes.add(new Polygon(x_hatRight,y_hatRight,3));
+		//Mario's hair
+		int[] x_marioHair = {DRAW_X,MID_X,END_X};
+		int[] y_marioHair = {(DRAW_Y-HALF_BLOCKSIZE),(DRAW_Y-HALF_BLOCKSIZE-QUARTER_BLOCKSIZE),(DRAW_Y-HALF_BLOCKSIZE)};
+		blackShapes.add(new Polygon(x_marioHair,y_marioHair,3));
+		//Left face triangle
+		int[] x_faceLeft = {DRAW_X,DRAW_X,MID_X};
+		int[] y_faceLeft = {(DRAW_Y),(DRAW_Y-HALF_BLOCKSIZE),(DRAW_Y-QUARTER_BLOCKSIZE)};
+		skinShapes.add(new Polygon(x_faceLeft,y_faceLeft,3));	
+		//Middle face triangle
+		int[] x_faceMid = {DRAW_X,MID_X,END_X};
+		int[] y_faceMid = {(DRAW_Y-HALF_BLOCKSIZE),(DRAW_Y-QUARTER_BLOCKSIZE),(DRAW_Y-HALF_BLOCKSIZE)};
+		skinShapes.add(new Polygon(x_faceMid,y_faceMid,3));
+		//Right face triangle
+		int[] x_faceRight = {END_X,END_X,MID_X};
+		int[] y_faceRight = {(DRAW_Y),(DRAW_Y-HALF_BLOCKSIZE),(DRAW_Y-QUARTER_BLOCKSIZE)};
+		skinShapes.add(new Polygon(x_faceRight,y_faceRight,3));
+		//Mario's mustache
+		int[] x_marioMustache = {DRAW_X,MID_X,END_X};
+		int[] y_marioMustache = {(DRAW_Y),(DRAW_Y-QUARTER_BLOCKSIZE),(DRAW_Y)};
+		blackShapes.add(new Polygon(x_marioMustache,y_marioMustache,3));
+		//Mario's shirt
+		int[] x_shirt = {DRAW_X,END_X,END_X,DRAW_X};
+		int[] y_shirt = {DRAW_Y,DRAW_Y,MID_Y,MID_Y};
+		redShapes.add(new Polygon(x_shirt,y_shirt,4));
+		//Pants left triangle
+		int[] x_pantsLeft = {DRAW_X,MID_X,DRAW_X};
+		int[] y_pantsLeft = {MID_Y,MID_Y,END_Y};
+		blueShapes.add(new Polygon(x_pantsLeft,y_pantsLeft,3));
+		//Shoes
+		int[] x_shoes = {DRAW_X,MID_X,END_X};
+		int[] y_shoes = {END_Y,MID_Y,END_Y};
+		brownShapes.add(new Polygon(x_shoes,y_shoes,3));
+		//Pants right triangle
+		int[] x_pantsRight = {END_X,MID_X,END_X};
+		int[] y_pantsRight = {MID_Y,MID_Y,END_Y};
+		blueShapes.add(new Polygon(x_pantsRight,y_pantsRight,3));
+		
+		//Draw Mario
+		for (Polygon shape : redShapes){ drawShape(shape, Sprite.COLOR_MARIO_RED, Sprite.COLOR_BORDER); }
+		for (Polygon shape : blueShapes){ drawShape(shape, Sprite.COLOR_MARIO_BLUE, Sprite.COLOR_BORDER); }
+		for (Polygon shape : blackShapes){ drawShape(shape, Sprite.COLOR_MARIO_HAIR, Sprite.COLOR_BORDER); }
+		for (Polygon shape : brownShapes){ drawShape(shape, Sprite.COLOR_MARIO_SHOES, Sprite.COLOR_BORDER); }
+		for (Polygon shape : skinShapes){ drawShape(shape, Sprite.COLOR_MARIO_SKIN, Sprite.COLOR_BORDER); }
 	}
 	
-	//TODO: Take a better look at the logic tomorrow. In your sleep deprived state, you made some mistakes
+	/**
+	 * Draw a question block at XY
+	 * @param X The x coordinate to draw it at
+	 * @param Y The y coordinate to draw it at
+	 * @param ADJ The adjacent question blocks
+	 * @param up_upright Whether the block up & to the right has a quesiton block above it
+	 * @throws IOException
+	 */
 	private void drawQuestionBlock(int X, int Y, int ADJ, boolean up_upright) throws IOException{
 		int DRAW_X = X * BLOCKSIZE, DRAW_Y = Y * BLOCKSIZE;
 		int MID_X = DRAW_X + HALF_BLOCKSIZE, MID_Y = DRAW_Y + HALF_BLOCKSIZE;
-		int QUARTER_X = DRAW_X + QUARTER_BLOCKSIZE, QUARTER_Y = DRAW_Y + QUARTER_BLOCKSIZE;
 		int END_X = DRAW_X + BLOCKSIZE, END_Y = DRAW_Y + BLOCKSIZE;
-		int THREE_X = END_X - QUARTER_BLOCKSIZE, THREE_Y = END_Y - QUARTER_BLOCKSIZE;
+		int QUARTER_X = DRAW_X + QUARTER_BLOCKSIZE, THREE_X = END_X - QUARTER_BLOCKSIZE;
 		
 		//Define the Black diamond for the question mark
 		int[] xpoints_diamond = {QUARTER_X,MID_X,THREE_X,MID_X};
@@ -115,21 +174,6 @@ public class QuiltGenerator {
 				downleft = (ADJ & BL) > 0,	downright = (ADJ & BR) > 0;
 				
 		ArrayList<Polygon> triangles = new ArrayList<Polygon>();
-		//{DEFAULT}
-		/*
-		//Bottom left triangle (small equilateral)
-		int[] x1D = {DRAW_X,QUARTER_X,MID_X},	y1D = {END_Y,MID_Y,END_Y};
-		triangles.add(new Polygon(x1D,y1D,3));
-		//Top right triangle (small equilateral)
-		int[] x2D = {MID_X,THREE_X,END_X},	y2D = {DRAW_Y,MID_Y,DRAW_Y};
-		triangles.add(new Polygon(x2D,y2D,3));
-		//Top left triangle (large right)
-		int[] x3D = {DRAW_X,DRAW_X,MID_X},	y3D = {END_Y,DRAW_Y,DRAW_Y};
-		triangles.add(new Polygon(x3D,y3D,3));
-		//Bottom right triangle (large right)
-		int[] x4D = {MID_X,END_X,END_X},	y4D = {END_Y,END_Y,DRAW_Y};
-		triangles.add(new Polygon(x4D,y4D,3));
-		*/
 		//alone or no directly adjacent (ok if only corners)
 		//{TESTED}
 		/*	 ____ ____ ____
@@ -165,6 +209,31 @@ public class QuiltGenerator {
 		 * 	|____|____|_\/_| 
 		 */
 		else if (left && !(right || up || down || upright || downleft)){
+			//Bottom left triangle (small equilateral)
+			int[] x1 = {DRAW_X,QUARTER_X,MID_X},	y1 = {END_Y,MID_Y,END_Y};
+			triangles.add(new Polygon(x1,y1,3));
+			//Top right triangle (small equilateral)
+			int[] x2 = {MID_X,THREE_X,END_X},	y2 = {DRAW_Y,MID_Y,DRAW_Y};
+			triangles.add(new Polygon(x2,y2,3));
+			//Top left rhombus (move onto left shape)
+			int[] x3 = {(DRAW_X-HALF_BLOCKSIZE),DRAW_X,MID_X,DRAW_X};
+			int[] y3 = {END_Y,END_Y,DRAW_Y,DRAW_Y};
+			triangles.add(new Polygon(x3,y3,4));
+			//Bottom right triangle (large right)
+			int[] x4 = {MID_X,END_X,END_X},	y4 = {END_Y,END_Y,DRAW_Y};
+			triangles.add(new Polygon(x4,y4,3));
+		}
+		//left and upright and not up, downleft, right, or down
+		//{TESTED}
+		/*	 ____ ____ ____
+		 * 	| /\ |    | /\ |
+		 * 	|_\/_|____|_\/_|
+		 * 	| /\/  /\/|    |
+		 * 	|_\/__/\/_|____|
+		 * 	|    |    | /\ |
+		 * 	|____|____|_\/_| 
+		 */
+		else if (left && upright && !(right || up || down || downleft)){
 			//Bottom left triangle (small equilateral)
 			int[] x1 = {DRAW_X,QUARTER_X,MID_X},	y1 = {END_Y,MID_Y,END_Y};
 			triangles.add(new Polygon(x1,y1,3));
@@ -331,6 +400,32 @@ public class QuiltGenerator {
 			int[] y4 = {DRAW_Y,(DRAW_Y-BLOCKSIZE),(DRAW_Y-BLOCKSIZE),MID_Y};
 			triangles.add(new Polygon(x4,y4,4));
 		}
+		//left, up, down and upright and not downleft or right
+		//{TESTED}
+		/*	 ____ ____ ____
+		 * 	| /\ | /\/  /\ |
+		 * 	|_\/_/ \/  /\/_|
+		 * 	| /\/  /\/|    |
+		 * 	|_\/__/\/ |____|
+		 * 	|    | /\ | /\ |
+		 * 	|____|/\/_|_\/_| 
+		 */
+		else if (left && up && down && upright && !(right || downleft)){
+			//Bottom left rhombus (into down)
+			int[] x1 = {DRAW_X,DRAW_X,QUARTER_X,MID_X},	y1 = {(END_Y+BLOCKSIZE),END_Y,MID_Y,END_Y};
+			triangles.add(new Polygon(x1,y1,3));
+			//Bottom right triangle (large right)
+			int[] x2 = {MID_X,END_X,END_X},	y2 = {END_Y,DRAW_Y,END_Y};
+			triangles.add(new Polygon(x2,y2,3));
+			//Top left rhombus (move onto left shape and up shape)
+			int[] x3 = {(DRAW_X-HALF_BLOCKSIZE),QUARTER_X,MID_X,DRAW_X};
+			int[] y3 = {END_Y,(DRAW_Y-HALF_BLOCKSIZE),DRAW_Y,END_Y};
+			triangles.add(new Polygon(x3,y3,4));
+			//Right rhombus (into up and upright)
+			int[] x4 = {MID_X,END_X,(END_X+HALF_BLOCKSIZE),THREE_X};
+			int[] y4 = {DRAW_Y,(DRAW_Y-BLOCKSIZE),(DRAW_Y-BLOCKSIZE),MID_Y};
+			triangles.add(new Polygon(x4,y4,4));
+		}
 		//left and up and upright and downleft and not right, or down
 		//{TESTED}
 		/*	 ____ ____ ____
@@ -408,6 +503,84 @@ public class QuiltGenerator {
 			int[] y4 = {END_Y,DRAW_Y,DRAW_Y,END_Y};
 			triangles.add(new Polygon(x4,y4,4));
 		}
+		//left, right and downleft and not up, down, or upright
+		//{TESTED}
+		/*	 ____ ____ ____
+		 * 	| /\ |    |    |
+		 * 	|_\/_|____|____|
+		 * 	| /\/  /\/  /\ |
+		 * 	|_\/  /\/__/\/_|
+		 * 	| /\ /    | /\ |
+		 * 	|_\/_|____|_\/_| 
+		 */
+		else if (left && right && downleft && !(up || down || upright)){
+			//Bottom left triangle (small equilateral)
+			int[] x1 = {DRAW_X,QUARTER_X,MID_X}, y1 = {END_Y,MID_Y,END_Y};
+			triangles.add(new Polygon(x1,y1,3));
+			//Top right triangle (small equilateral)
+			int[] x2 = {MID_X,THREE_X,END_X}, y2 = {DRAW_Y,MID_Y,DRAW_Y};
+			triangles.add(new Polygon(x2,y2,3));
+			//Left rhombus (into left and downleft)
+			int[] x3 = {(DRAW_X-HALF_BLOCKSIZE),DRAW_X,MID_X,(DRAW_X-QUARTER_BLOCKSIZE)};
+			int[] y3 = {END_Y,DRAW_Y,DRAW_Y,(END_Y+HALF_BLOCKSIZE)};
+			triangles.add(new Polygon(x3,y3,4));
+			//Right rhombus (into right)
+			int[] x4 = {MID_X,END_X,(END_X+HALF_BLOCKSIZE),END_X};
+			int[] y4 = {END_Y,DRAW_Y,DRAW_Y,END_Y};
+			triangles.add(new Polygon(x4,y4,4));
+		}
+		//left, right, upright, and downleft and not up, or down
+		//{TESTED}
+		/*	 ____ ____ ____
+		 * 	| /\ |    | /\ |
+		 * 	|_\/_|____/ \/_|
+		 * 	| /\/  /\/  /\ |
+		 * 	|_\/  /\/__/\/_|
+		 * 	| /\ /    | /\ |
+		 * 	|_\/_|____|_\/_| 
+		 */
+		else if (left && right && upright && downleft && !(up || down)){
+			//Bottom left triangle (small equilateral)
+			int[] x1 = {DRAW_X,QUARTER_X,MID_X}, y1 = {END_Y,MID_Y,END_Y};
+			triangles.add(new Polygon(x1,y1,3));
+			//Top right triangle (small equilateral)
+			int[] x2 = {MID_X,THREE_X,END_X}, y2 = {DRAW_Y,MID_Y,DRAW_Y};
+			triangles.add(new Polygon(x2,y2,3));
+			//Left rhombus (into left and downleft)
+			int[] x3 = {(DRAW_X-HALF_BLOCKSIZE),DRAW_X,MID_X,(DRAW_X-QUARTER_BLOCKSIZE)};
+			int[] y3 = {END_Y,DRAW_Y,DRAW_Y,(END_Y+HALF_BLOCKSIZE)};
+			triangles.add(new Polygon(x3,y3,4));
+			//Right rhombus (into right)
+			int[] x4 = {MID_X,(END_X+QUARTER_BLOCKSIZE),(END_X+HALF_BLOCKSIZE),END_X};
+			int[] y4 = {END_Y,(DRAW_Y-HALF_BLOCKSIZE),DRAW_Y,END_Y};
+			triangles.add(new Polygon(x4,y4,4));
+		}
+		//left, right and upright and not up, down, or downleft
+		//{TESTED}
+		/*	 ____ ____ ____
+		 * 	| /\ |    | /\ |
+		 * 	|_\/_|____/ \/_|
+		 * 	| /\/  /\/  /\ |
+		 * 	|_\/__/\/__/\/_|
+		 * 	|    |    | /\ |
+		 * 	|____|____|_\/_| 
+		 */
+		else if (left && right && upright && !(up || down || downleft)){
+			//Bottom left triangle (small equilateral)
+			int[] x1 = {DRAW_X,QUARTER_X,MID_X}, y1 = {END_Y,MID_Y,END_Y};
+			triangles.add(new Polygon(x1,y1,3));
+			//Top right triangle (small equilateral)
+			int[] x2 = {MID_X,THREE_X,END_X}, y2 = {DRAW_Y,MID_Y,DRAW_Y};
+			triangles.add(new Polygon(x2,y2,3));
+			//Left rhombus (into left)
+			int[] x3 = {(DRAW_X-HALF_BLOCKSIZE),DRAW_X,MID_X,DRAW_X};
+			int[] y3 = {END_Y,DRAW_Y,DRAW_Y,END_Y};
+			triangles.add(new Polygon(x3,y3,4));
+			//Right rhombus (into right and upright)
+			int[] x4 = {MID_X,(END_X+QUARTER_BLOCKSIZE),(END_X+HALF_BLOCKSIZE),END_X};
+			int[] y4 = {END_Y,(DRAW_Y-HALF_BLOCKSIZE),DRAW_Y,END_Y};
+			triangles.add(new Polygon(x4,y4,4));
+		}
 		//left and right and up and not down, upright, or downleft
 		//{TESTED}
 		/*	 ____ ____ ____
@@ -429,6 +602,33 @@ public class QuiltGenerator {
 			//Left rhombus (into left)
 			int[] x3 = {(DRAW_X-HALF_BLOCKSIZE),QUARTER_X,MID_X,DRAW_X};
 			int[] y3 = {END_Y,(DRAW_Y-HALF_BLOCKSIZE),DRAW_Y,END_Y};
+			triangles.add(new Polygon(x3,y3,4));
+			//Right rhombus (into right)
+			int[] x4 = {MID_X,END_X,(END_X+HALF_BLOCKSIZE),END_X};
+			int[] y4 = {END_Y,DRAW_Y,DRAW_Y,END_Y};
+			triangles.add(new Polygon(x4,y4,4));
+		}
+		//left, right, up and downleft and not down or upright
+		//{TESTED}
+		/*	 ____ ____ ____
+		 * 	| /\ | /\/|    |
+		 * 	|_\/_/ \/ |____|
+		 * 	| /\/  /\/  /\ |
+		 * 	|_\/  /\/__/\/_|
+		 * 	| /\ /    | /\ |
+		 * 	|_\/_|____|_\/_| 
+		 */
+		else if (left && right && up && downleft && !(down || upright)){
+			//Bottom left triangle (small equilateral)
+			int[] x1 = {DRAW_X,QUARTER_X,MID_X}, y1 = {END_Y,MID_Y,END_Y};
+			triangles.add(new Polygon(x1,y1,3));
+			//Top right rhombus (into up)
+			int[] x2 = {MID_X,THREE_X,END_X,END_X};
+			int[] y2 = {DRAW_Y,MID_Y,DRAW_Y,(DRAW_Y-BLOCKSIZE)};
+			triangles.add(new Polygon(x2,y2,4));
+			//Left rhombus (into left and downleft)
+			int[] x3 = {(DRAW_X-HALF_BLOCKSIZE),QUARTER_X,MID_X,(DRAW_X-QUARTER_BLOCKSIZE)};
+			int[] y3 = {END_Y,(DRAW_Y-HALF_BLOCKSIZE),DRAW_Y,(END_Y+HALF_BLOCKSIZE)};
 			triangles.add(new Polygon(x3,y3,4));
 			//Right rhombus (into right)
 			int[] x4 = {MID_X,END_X,(END_X+HALF_BLOCKSIZE),END_X};
@@ -566,6 +766,34 @@ public class QuiltGenerator {
 			//Left rhombus (into left and up and downleft)
 			int[] x3 = {(DRAW_X-HALF_BLOCKSIZE),QUARTER_X,MID_X,(DRAW_X-QUARTER_BLOCKSIZE)};
 			int[] y3 = {END_Y,(DRAW_Y-HALF_BLOCKSIZE),DRAW_Y,(END_Y+HALF_BLOCKSIZE)};
+			triangles.add(new Polygon(x3,y3,4));
+			//Right rhombus (into rightdown)
+			int[] x4 = {MID_X,THREE_X,(END_X+HALF_BLOCKSIZE),END_X};
+			int[] y4 = {END_Y,(END_Y+HALF_BLOCKSIZE),DRAW_Y,DRAW_Y};
+			triangles.add(new Polygon(x4,y4,4));
+		}
+		//left, right, up, and down and not upright or downleft
+		//{TESTED}
+		/*	 ____ ____ ____
+		 * 	| /\ | /\/|    |
+		 * 	|_\/_/ \/ |____|
+		 * 	| /\/  /\/  /\ |
+		 * 	|_\/__/\/  /\/_|
+		 * 	|    | /\ / /\ |
+		 * 	|____|/\/_|_\/_| 
+		 */
+		else if (left && right && up && down && !(upright || downleft)){
+			//Bottom left rhombus (into down)
+			int[] x1 = {DRAW_X,MID_X,QUARTER_X,DRAW_X};
+			int[] y1 = {(END_Y+BLOCKSIZE),END_Y,MID_Y,END_Y};
+			triangles.add(new Polygon(x1,y1,4));
+			//Top right rhombus (into up)
+			int[] x2 = {MID_X,THREE_X,END_X,END_X};
+			int[] y2 = {DRAW_Y,MID_Y,DRAW_Y,(DRAW_Y-BLOCKSIZE)};
+			triangles.add(new Polygon(x2,y2,4));
+			//Left rhombus (into left and up)
+			int[] x3 = {(DRAW_X-HALF_BLOCKSIZE),QUARTER_X,MID_X,DRAW_X};
+			int[] y3 = {END_Y,(DRAW_Y-HALF_BLOCKSIZE),DRAW_Y,END_Y};
 			triangles.add(new Polygon(x3,y3,4));
 			//Right rhombus (into rightdown)
 			int[] x4 = {MID_X,THREE_X,(END_X+HALF_BLOCKSIZE),END_X};
@@ -808,9 +1036,17 @@ public class QuiltGenerator {
 				//small equilateral at top right
 				int[] xthis = {MID_X,THREE_X,END_X}, ythis = {DRAW_Y,MID_Y,DRAW_Y};
 				triangles.add(new Polygon(xthis,ythis,3));
+			} else if (!right){
+				//small equilateral at top right
+				int[] xthis = {MID_X,THREE_X,END_X}, ythis = {DRAW_Y,MID_Y,DRAW_Y};
+				triangles.add(new Polygon(xthis,ythis,3));
 			}
 			if (!left && !upleft){
-				//right triangle at top right
+				//right triangle at top left
+				int[] xthis = {DRAW_X,MID_X,DRAW_X}, ythis = {DRAW_Y,DRAW_Y,END_Y};
+				triangles.add(new Polygon(xthis,ythis,3));
+			} else if (!left){
+				//right triangle at top left
 				int[] xthis = {DRAW_X,MID_X,DRAW_X}, ythis = {DRAW_Y,DRAW_Y,END_Y};
 				triangles.add(new Polygon(xthis,ythis,3));
 			}
@@ -854,6 +1090,7 @@ public class QuiltGenerator {
 		drawShape(middleDiamond, Sprite.COLOR_QUESTIONMARK_DIAMOND, Sprite.COLOR_BORDER);
 	}
 	
+	
 	/**
 	 * Draw a shape on the canvas
 	 * @param POLY The shape to draw
@@ -866,34 +1103,7 @@ public class QuiltGenerator {
 		g2D.setColor(BORDER);
 		g2D.drawPolygon(POLY);
 	}
-	
-	/**
-	 * Add a shape to the back of the queue
-	 * @param POLY The shape to add
-	 * @param FILL The fill color
-	 * @param BORDER The border color
-	 */
-	private void queueShape(Polygon POLY, Color FILL, Color BORDER){
-		shapeQueue.add(POLY);
-		fillQueue.add(FILL);
-		borderQueue.add(BORDER);
-	}
-	
-
-	/**
-	 * Remove the shape in the front of the queue and draw it
-	 */
-	private boolean dequeueShape(){
-		boolean returnVal = shapeQueue.size() > 0;
-		if (returnVal){
-			Polygon POLY = shapeQueue.remove(0);
-			Color FILL = fillQueue.remove(0);
-			Color BORDER = borderQueue.remove(0);
-			drawShape(POLY,FILL,BORDER);
-		}
-		return returnVal;
-	}
-	
+		
 	/**
 	 * Outputs the quilt to a file noted by FILENAME
 	 * @param FILENAME The name of the file to output to
@@ -905,20 +1115,68 @@ public class QuiltGenerator {
 			throw new RuntimeException("Unexpected error writing image");
 		}
 	}
+
+	/**
+	 * Generate the Quilt
+	 * @param VERBOSE What level of detail to print to the console with. 0 for none, 1 for all.
+	 * @throws IOException
+	 */
+	public void generate(int VERBOSE) throws IOException{
+		int marioX = -1, marioY = -1;
+		int ADJ = 0; //This integer stores whether adjacent blocks share the same ID
+		boolean up_upright = false; //Whether the block one space right and two spaces up shares the same ID as this
+		for (int y = 0; y < level.length; y++){
+			for (int x = 0; x < level[0].length; x++){
+				int thisID = level[y][x];	//for now, only Sprite.ID_QUESTION_BLOCK
+				ADJ = 0;	up_upright = false;
+				if (x > 0 && level[y][x-1] == thisID){ ADJ = ADJ | ML; } //LEFT
+				if (x < level[0].length-1 && level[y][x+1] == thisID){ ADJ = ADJ | MR; } //RIGHT
+				if (y > 0 && level[y-1][x] == thisID){ ADJ = ADJ | TM; } //UP
+				if (y < level.length-1 && level[y+1][x] == thisID){ ADJ = ADJ | BM; } //DOWN
+				if (y > 0 && x > 0 && level[y-1][x-1] == thisID){ ADJ = ADJ | TL; } //UPLEFT
+				if (y > 0 && x < level[0].length-1 && level[y-1][x+1] == thisID){ ADJ = ADJ | TR; } //UPRIGHT
+				if (y < level.length-1 && x > 0 && level[y+1][x-1] == thisID){ ADJ = ADJ | BL; } //DOWNLEFT
+				if (y < level.length-1 && x < level[0].length-1 && level[y+1][x+1] == thisID){ ADJ = ADJ | BR; } //DOWNRIGHT
+				if (y > 1 && x < level[0].length-1 && level[y-2][x+1] == thisID){ up_upright = true; } //UPUPRIGHT
+				
+				switch(thisID){
+				case Sprite.ID_QUESTION_BLOCK:
+					if (VERBOSE > 0) System.out.println("Question Block at (" + y + "," + x + ")");
+					drawQuestionBlock(x,y,ADJ,up_upright);
+					break;
+				case Sprite.ID_MARIO:
+					if (VERBOSE > 0) System.out.println("Mario at (" + y + "," + x + ")");
+					marioX = x;
+					marioY = y;
+					break;
+				case Sprite.ID_AIR:
+				default:
+					int[] xTemp = {x*BLOCKSIZE,x*BLOCKSIZE,(x+1)*BLOCKSIZE,(x+1)*BLOCKSIZE};
+					int[] yTemp = {y*BLOCKSIZE,(y+1)*BLOCKSIZE,(y+1)*BLOCKSIZE,y*BLOCKSIZE};
+					drawShape(new Polygon(xTemp,yTemp,4), Color.WHITE, Sprite.COLOR_BORDER);
+					break;					
+				}
+			}
+		}
+		drawMario(marioX,marioY);
+		outputImageToFile("output.png");
+	}
+	
 	/**
 	 * TEST MAIN
 	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws IOException{
+		int VERBOSE = 0;
 		int[][] LEVEL = new int[10][10];
 		for (int i = 0; i < 10; i++){
 			for (int j = 0; j < 10; j++){
-				LEVEL[i][j] = 1;//Sprite.ID_QUESTION_BLOCK;
+				LEVEL[i][j] = 0;//Sprite.ID_QUESTION_BLOCK;
 			}
 		}
-		int ADJ = 0;	boolean up_upright = false;
 		
 		int q = Sprite.ID_QUESTION_BLOCK;
+		int m = Sprite.ID_MARIO;
 		/*	 ____ ____ ____
 		 * 	| /\ | /\ | /\ |
 		 * 	|_\/_|_\/_|_\/_|
@@ -927,57 +1185,14 @@ public class QuiltGenerator {
 		 * 	| /\ | /\ | /\ |
 		 * 	|_\/_|_\/_|_\/_| 
 		 */
-		LEVEL[1][1] = q;	LEVEL[1][2] = 1;	LEVEL[1][3] = q;
-		LEVEL[2][1] = q;	LEVEL[2][2] = q;	LEVEL[2][3] = 1;
+		LEVEL[1][1] = q;	LEVEL[1][2] = q;	LEVEL[1][3] = q;
+		LEVEL[2][1] = q;	LEVEL[2][2] = q;	LEVEL[2][3] = q;
 		LEVEL[3][1] = q;	LEVEL[3][2] = q;	LEVEL[3][3] = q;
 		
-		QuiltGenerator qG = new QuiltGenerator(LEVEL);
-		//I know this is bad locality of reference, but I need to process top-down
-		for (int y = 0; y < LEVEL.length; y++){
-			for (int x = 0; x < LEVEL[0].length; x++){
-				int thisID = LEVEL[y][x];	//for now, only Sprite.ID_QUESTION_BLOCK
-				ADJ = 0;	up_upright = false;
-				if (x > 0 && LEVEL[y][x-1] == thisID){ //LEFT
-					ADJ = ADJ | ML;
-				}
-				if (x < LEVEL[0].length-1 && LEVEL[y][x+1] == thisID){ //RIGHT
-					ADJ = ADJ | MR;
-				}
-				if (y > 0 && LEVEL[y-1][x] == thisID){ //UP
-					ADJ = ADJ | TM;
-				}
-				if (y < LEVEL.length-1 && LEVEL[y+1][x] == thisID){ //DOWN
-					ADJ = ADJ | BM;
-				}
-				if (y > 0 && x > 0 && LEVEL[y-1][x-1] == thisID){ //UPLEFT
-					ADJ = ADJ | TL;
-				}
-				if (y > 0 && x < LEVEL[0].length-1 && LEVEL[y-1][x+1] == thisID){ //UPRIGHT
-					ADJ = ADJ | TR;
-				}
-				if (y < LEVEL.length-1 && x > 0 && LEVEL[y+1][x-1] == thisID){ //DOWNLEFT
-					ADJ = ADJ | BL;
-				}
-				if (y < LEVEL.length-1 && x < LEVEL[0].length-1 && LEVEL[y+1][x+1] == thisID){ //DOWNRIGHT
-					ADJ = ADJ | BR;
-				}
-				if (y > 1 && x < LEVEL[0].length-1 && LEVEL[y-2][x+1] == thisID){
-					up_upright = true;
-				}
-				//ADJ = 0; //Clear this line, only for testing base without neighbors
-				if (thisID == Sprite.ID_QUESTION_BLOCK){
-					System.out.println("Question Block at (" + y + "," + x + ")");
-					qG.drawQuestionBlock(x,y,ADJ,up_upright);
-				} else if (thisID == 1){
-					int[] xTemp = {x*BLOCKSIZE,x*BLOCKSIZE,(x+1)*BLOCKSIZE,(x+1)*BLOCKSIZE};
-					int[] yTemp = {y*BLOCKSIZE,(y+1)*BLOCKSIZE,(y+1)*BLOCKSIZE,y*BLOCKSIZE};
-					qG.drawShape(new Polygon(xTemp,yTemp,4), Color.WHITE, Sprite.COLOR_BORDER);
-				}
-			}
-		}
-		while(qG.dequeueShape());
+		LEVEL[8][2] = m;
 		
-		qG.outputImageToFile("output.png");
+		QuiltGenerator qG = new QuiltGenerator(LEVEL);
+		qG.generate(VERBOSE);
 		
 	}
 }
