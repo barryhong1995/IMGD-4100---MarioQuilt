@@ -17,12 +17,12 @@ public class ImageOverlay {
         this.sprites = new SpriteMap();
     }
 
-    public BufferedImage drawBlock(String name){
-        BufferedImage block = findBlockImage(name);
-        return overlayImages(block);
+    public BufferedImage drawBlock(Integer blockID, Coordinate pos){
+        BufferedImage block = findBlockImage(blockID);
+        return overlayImages(block, pos);
     }
 
-    public BufferedImage overlayImages(BufferedImage fgImage){
+    public BufferedImage overlayImages(BufferedImage fgImage, Coordinate pos){
         if(fgImage.getHeight() > olImage.getHeight()
                 || fgImage.getWidth() > olImage.getWidth()){
             return null;
@@ -33,15 +33,15 @@ public class ImageOverlay {
                             RenderingHints.VALUE_ANTIALIAS_ON);
 
         g.drawImage(olImage, 0, 0, null);
-        g.drawImage(fgImage, 0, 0, null);
+        g.drawImage(fgImage, B_SIZE * pos.getX(), B_SIZE * pos.getY(), null); //olImage.getHeight() - B_SIZE  * (pos.getY() + 1)
 
         g.dispose();
         return olImage;
     }
 
-    public BufferedImage findBlockImage(String name){
+    public BufferedImage findBlockImage(Integer blockID){
         BufferedImage spritePage = readImage(SPRITE_PATH);
-        Coordinate c = sprites.findCoords(name);
+        Coordinate c = sprites.findCoords(blockID);
 
         if(B_SIZE * c.getX() + B_SIZE > spritePage.getWidth() ||
                 B_SIZE * c.getY() + B_SIZE > spritePage.getHeight()) { return null; }
