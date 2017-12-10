@@ -30,8 +30,8 @@ public class QuiltGenerator {
 	 */
 	public QuiltGenerator(int[][] LEVEL){
 		level = LEVEL;
-		output_image = new BufferedImage(LEVEL.length * BLOCKSIZE,
-										LEVEL[0].length * BLOCKSIZE,
+		output_image = new BufferedImage(level[0].length * BLOCKSIZE,
+										level.length * BLOCKSIZE,
 										BufferedImage.TYPE_INT_RGB);
 		g2D = output_image.createGraphics();
 	}
@@ -44,9 +44,9 @@ public class QuiltGenerator {
 	public QuiltGenerator(int[][] LEVEL, int WORLD){
 		level = LEVEL;
 		world = WORLD;
-		output_image = new BufferedImage(LEVEL.length * BLOCKSIZE,
-				LEVEL[0].length * BLOCKSIZE,
-				BufferedImage.TYPE_INT_RGB);
+		output_image = new BufferedImage(level[0].length * BLOCKSIZE,
+										level.length * BLOCKSIZE,
+										BufferedImage.TYPE_INT_RGB);
 		g2D = output_image.createGraphics();
 	}
 	
@@ -156,16 +156,30 @@ public class QuiltGenerator {
 	 * @param X The x coordinate to draw it at
 	 * @param Y The y coordinate to draw it at
 	 * @param ADJ The adjacent question blocks
-	 * @param up_upright Whether the block up & to the right has a quesiton block above it
+	 * @param up_upright Whether the block up & to the right has a question block above it
 	 * @throws IOException
 	 */
 	private void drawQuestionBlock(int X, int Y, int ADJ, boolean up_upright) throws IOException{
+		drawCenteredDiamondBlock(X,Y,ADJ,up_upright,Sprite.COLOR_QUESTION_BG,Sprite.COLOR_QUESTION_DIAMOND);
+	}
+	
+	/**
+	 * Draw a diamond-centered block at XY
+	 * @param X The x coordinate to draw it at
+	 * @param Y The y coordinate to draw it at
+	 * @param ADJ The adjacent blocks of the same ID
+	 * @param up_upright Whether the block up & to the right has the same block above it
+	 * @param color_background The background color of the block
+	 * @param color_diamond The color of the diamond
+	 * @throws IOException
+	 */
+	private void drawCenteredDiamondBlock(int X, int Y, int ADJ, boolean up_upright, Color color_background, Color color_diamond) throws IOException{
 		int DRAW_X = X * BLOCKSIZE, DRAW_Y = Y * BLOCKSIZE;
 		int MID_X = DRAW_X + HALF_BLOCKSIZE, MID_Y = DRAW_Y + HALF_BLOCKSIZE;
 		int END_X = DRAW_X + BLOCKSIZE, END_Y = DRAW_Y + BLOCKSIZE;
 		int QUARTER_X = DRAW_X + QUARTER_BLOCKSIZE, THREE_X = END_X - QUARTER_BLOCKSIZE;
 		
-		//Define the Black diamond for the question mark
+		//Define the center diamond
 		int[] xpoints_diamond = {QUARTER_X,MID_X,THREE_X,MID_X};
 		int[] ypoints_diamond = {MID_Y,DRAW_Y,MID_Y,END_Y};
 		Polygon middleDiamond = new Polygon(xpoints_diamond,ypoints_diamond,4);
@@ -1086,11 +1100,354 @@ public class QuiltGenerator {
 		 */
 		
 		for (Polygon trig : triangles){
-			drawShape(trig, Sprite.COLOR_QUESTIONMARK_BG, Sprite.COLOR_BORDER);
+			drawShape(trig, color_background, Sprite.COLOR_BORDER);
 		}
-		drawShape(middleDiamond, Sprite.COLOR_QUESTIONMARK_DIAMOND, Sprite.COLOR_BORDER);
+		drawShape(middleDiamond, color_diamond, Sprite.COLOR_BORDER);
 	}
 	
+	
+	/**
+	 * Draw a music block at XY
+	 * @param X The x coordinate to draw it at
+	 * @param Y The y coordinate to draw it at
+	 * @param ADJ The adjacent blocks of the same ID
+	 */
+	private void drawMusicBlock(int X, int Y, int ADJ){
+		int DRAW_X = X * BLOCKSIZE, DRAW_Y = Y * BLOCKSIZE;
+		int MID_X = DRAW_X + HALF_BLOCKSIZE, MID_Y = DRAW_Y + HALF_BLOCKSIZE;
+		int END_X = DRAW_X + BLOCKSIZE, END_Y = DRAW_Y + BLOCKSIZE;
+		int QUARTER_X = DRAW_X + QUARTER_BLOCKSIZE, QUARTER_Y = DRAW_Y + QUARTER_BLOCKSIZE;
+		int THREE_X = END_X - QUARTER_BLOCKSIZE, THREE_Y = END_Y - QUARTER_BLOCKSIZE;
+		
+		boolean left = (ADJ & ML) > 0,		right = (ADJ & MR) > 0,
+				up = (ADJ & TM) > 0,		down = (ADJ & BM) > 0,
+				upleft = (ADJ & TL) > 0,	upright = (ADJ & TR) > 0,
+				downleft = (ADJ & BL) > 0,	downright = (ADJ & BR) > 0;
+		
+		//Define the Black diamond and tail for the note
+		int[] xpoints_diamond = {QUARTER_X,MID_X,THREE_X,MID_X};
+		int[] ypoints_diamond = {THREE_Y,END_Y,THREE_Y,MID_Y};
+		Polygon bottomDiamond = new Polygon(xpoints_diamond,ypoints_diamond,4);
+		int[] xpoints_tail = {MID_X,END_X,MID_X}, ypoints_tail = {DRAW_Y,DRAW_Y,MID_Y};
+		Polygon noteTail = new Polygon(xpoints_tail,ypoints_tail,3);
+		int[] xpoints_tail2 = {MID_X,THREE_X,THREE_X}, ypoints_tail2 = {MID_Y,QUARTER_Y,THREE_Y};
+		Polygon noteTail2 = new Polygon(xpoints_tail2,ypoints_tail2,3);
+		
+		ArrayList<Polygon> triangles = new ArrayList<Polygon>();
+		
+		//Checking RIGHT && UPRIGHT
+		if (right && upright){
+			//Bottom right rhombus (into right)
+			int[] x2 = {MID_X,END_X,(END_X+HALF_BLOCKSIZE),(END_X+HALF_BLOCKSIZE)};
+			int[] y2 = {END_Y,END_Y,MID_Y,DRAW_Y};
+			triangles.add(new Polygon(x2,y2,4));
+			//Right rhombus (into right and upright)
+			int[] x3 = {THREE_X,THREE_X,(END_X+QUARTER_BLOCKSIZE),(END_X+HALF_BLOCKSIZE)};
+			int[] y3 = {THREE_Y,QUARTER_Y,(DRAW_Y-QUARTER_BLOCKSIZE),DRAW_Y};
+			triangles.add(new Polygon(x3,y3,4));
+		} else if (right){
+			//Bottom right rhombus (into right)
+			int[] x2 = {MID_X,END_X,(END_X+HALF_BLOCKSIZE),(END_X+HALF_BLOCKSIZE)};
+			int[] y2 = {END_Y,END_Y,MID_Y,DRAW_Y};
+			triangles.add(new Polygon(x2,y2,4));
+			//Right rhombus (into right)
+			int[] x3 = {THREE_X,THREE_X,END_X,(END_X+HALF_BLOCKSIZE)};
+			int[] y3 = {THREE_Y,QUARTER_Y,DRAW_Y,DRAW_Y};
+			triangles.add(new Polygon(x3,y3,4));
+		} else { //None to the right
+			//Bottom right EQUILATERAL
+			int[] x2 = {MID_X,THREE_X,END_X}, y2 = {END_Y,THREE_Y,END_Y};
+			triangles.add(new Polygon(x2,y2,3));
+			//Right rhombus
+			int[] x3 = {THREE_X,END_X,END_X,THREE_X};
+			int[] y3 = {THREE_Y,END_Y,DRAW_Y,QUARTER_Y};
+			triangles.add(new Polygon(x3,y3,4));
+		}
+		//Checking LEFT && UP
+		if (left && up){
+			//Left rhombus (into left)
+			int[] x4 = {DRAW_X,MID_X,MID_X,(DRAW_X-HALF_BLOCKSIZE)};
+			int[] y4 = {END_Y,MID_Y,DRAW_Y,END_Y};
+			triangles.add(new Polygon(x4,y4,4));
+			//Top left RIGHT (into left and up)
+			int[] x5 = {(DRAW_X-QUARTER_BLOCKSIZE),(DRAW_X-QUARTER_BLOCKSIZE),QUARTER_X,MID_X};
+			int[] y5 = {THREE_Y,QUARTER_Y,(DRAW_Y-QUARTER_BLOCKSIZE),DRAW_Y};
+			triangles.add(new Polygon(x5,y5,4));
+		} else if (left){
+			//Left rhombus (into left)
+			int[] x4 = {DRAW_X,MID_X,MID_X,(DRAW_X-HALF_BLOCKSIZE)};
+			int[] y4 = {END_Y,MID_Y,DRAW_Y,END_Y};
+			triangles.add(new Polygon(x4,y4,4));
+			//Top left RIGHT (into left)
+			int[] x5 = {(DRAW_X-QUARTER_BLOCKSIZE),(DRAW_X-QUARTER_BLOCKSIZE),DRAW_X,MID_X};
+			int[] y5 = {THREE_Y,QUARTER_Y,DRAW_Y,DRAW_Y};
+			triangles.add(new Polygon(x5,y5,4));
+		} else if (up){
+			//Left rhombus
+			int[] x4 = {DRAW_X,MID_X,MID_X,DRAW_X};
+			int[] y4 = {END_Y,MID_Y,DRAW_Y,MID_Y};
+			triangles.add(new Polygon(x4,y4,4));
+			//Top left RIGHT (into up)
+			int[] x5 = {DRAW_X,DRAW_X,QUARTER_X,MID_X};
+			int[] y5 = {MID_Y,DRAW_Y,(DRAW_Y-QUARTER_BLOCKSIZE),DRAW_Y};
+			triangles.add(new Polygon(x5,y5,4));
+		} else { //None to the left or up
+			//One big rhombus for the whole top left
+			int[] x3 = {DRAW_X,MID_X,MID_X,DRAW_X};
+			int[] y3 = {DRAW_Y,DRAW_Y,MID_Y,END_Y};
+			triangles.add(new Polygon(x3,y3,4));
+		}
+		//Checking LEFT && DOWNLEFT
+		if (down && downleft){
+			//Bottom left rhombus (into down and downleft)
+			int[] x1 = {(DRAW_X-QUARTER_BLOCKSIZE),QUARTER_X,MID_X,(DRAW_X-QUARTER_BLOCKSIZE)};
+			int[] y1 = {(END_Y+QUARTER_BLOCKSIZE),THREE_Y,END_Y,(END_Y+HALF_BLOCKSIZE+QUARTER_BLOCKSIZE)};
+			triangles.add(new Polygon(x1,y1,4));
+		} else if (down){
+			//Bottom left rhombus (into down)
+			int[] x1 = {DRAW_X,QUARTER_X,MID_X,DRAW_X};
+			int[] y1 = {END_Y,THREE_Y,END_Y,(END_Y+HALF_BLOCKSIZE)};
+			triangles.add(new Polygon(x1,y1,4));
+		} else { //None below
+			//Bottom left EQUILATERAL
+			int[] x1 = {DRAW_X,QUARTER_X,MID_X}, y1 = {END_Y,THREE_Y,END_Y};
+			triangles.add(new Polygon(x1,y1,3));
+		}
+		
+		for(Polygon trig : triangles){ drawShape(trig,Sprite.COLOR_MUSIC_BG,Sprite.COLOR_BORDER); }
+		drawShape(bottomDiamond,Sprite.COLOR_MUSIC_NOTE,Sprite.COLOR_BORDER);
+		drawShape(noteTail,Sprite.COLOR_MUSIC_NOTE,Sprite.COLOR_BORDER);
+		drawShape(noteTail2,Sprite.COLOR_MUSIC_NOTE,Sprite.COLOR_BORDER);
+	}
+
+	/**
+	 * Draw a yellow face block or cloud at XY
+	 * @param X The x coordinate to draw it at
+	 * @param Y The y coordinate to draw it at
+	 * @param MOUTH Drawing a cloud if true, drawing a yellow face block otherwise
+	 * @param ADJ The adjacent blocks of the same ID
+	 */
+	private void drawFaceBlock(int X, int Y, int ADJ, boolean MOUTH){
+		int DRAW_X = X * BLOCKSIZE, DRAW_Y = Y * BLOCKSIZE;
+		int MID_X = DRAW_X + HALF_BLOCKSIZE, MID_Y = DRAW_Y + HALF_BLOCKSIZE;
+		int END_X = DRAW_X + BLOCKSIZE, END_Y = DRAW_Y + BLOCKSIZE;
+		int QUARTER_X = DRAW_X + QUARTER_BLOCKSIZE, QUARTER_Y = DRAW_Y + QUARTER_BLOCKSIZE;
+		int THREE_X = END_X - QUARTER_BLOCKSIZE, THREE_Y = END_Y - QUARTER_BLOCKSIZE;
+				
+		boolean left = (ADJ & ML) > 0,		right = (ADJ & MR) > 0,
+				up = (ADJ & TM) > 0,		down = (ADJ & BM) > 0,
+				upleft = (ADJ & TL) > 0,	upright = (ADJ & TR) > 0,
+				downleft = (ADJ & BL) > 0,	downright = (ADJ & BR) > 0;
+		//Define left eye
+		int[] x_left = {QUARTER_X,DRAW_X,QUARTER_X}, y_left = {THREE_Y,MID_Y,QUARTER_Y};
+		Polygon leftEye = new Polygon(x_left,y_left,3);
+		//Define right eye
+		int[] x_right = {THREE_X,END_X,THREE_X}, y_right = {THREE_Y,MID_Y,QUARTER_Y};
+		Polygon rightEye = new Polygon(x_right,y_right,3);
+		//Define mouth
+		int[] x_mouth = {QUARTER_X,MID_X,THREE_X}, y_mouth = {THREE_Y,END_Y,THREE_Y};
+		Polygon mouth = new Polygon(x_mouth,y_mouth,3);
+		
+		ArrayList<Polygon> triangles = new ArrayList<Polygon>();
+		
+		//Unoptimizable shapes
+		int[] x_top = {QUARTER_X,MID_X,THREE_X}, y_top = {QUARTER_Y,DRAW_Y,QUARTER_Y};
+		triangles.add(new Polygon(x_top,y_top,3));
+		int[] x_box = {QUARTER_X,THREE_X,THREE_X,QUARTER_X}, y_box = {QUARTER_Y,QUARTER_Y,THREE_Y,THREE_Y};
+		triangles.add(new Polygon(x_box,y_box,4));
+		
+		//Base Coverage
+		if ((!up && !left) || (left && upleft)){
+			//Top Left
+			int[] x1 = {DRAW_X,MID_X,DRAW_X}, y1 = {MID_Y,DRAW_Y,DRAW_Y};
+			triangles.add(new Polygon(x1,y1,3));
+		}
+		if ((!up && !right) || (right && upright)){
+			//Top Right
+			int[] x1 = {END_X,MID_X,END_X}, y1 = {MID_Y,DRAW_Y,DRAW_Y};
+			triangles.add(new Polygon(x1,y1,3));
+		}
+		if ((!down && !left) || (left && downleft)){
+			//Bottom Left
+			int[] x1 = {DRAW_X,MID_X,DRAW_X}, y1 = {MID_Y,END_Y,END_Y};
+			triangles.add(new Polygon(x1,y1,3));
+		}
+		if ((!down && !right) || (right && downright)){
+			//Bottom Right
+			int[] x1 = {END_X,MID_X,END_X}, y1 = {MID_Y,END_Y,END_Y};
+			triangles.add(new Polygon(x1,y1,3));
+		}
+		
+		//Checking LEFT && UP && UPLEFT
+		if (left && up && upleft){
+			//Top Left Diamond (into left up and upleft)
+			int[] x1 = {DRAW_X,MID_X,DRAW_X,(DRAW_X-HALF_BLOCKSIZE)};
+			int[] y1 = {MID_Y,DRAW_Y,(DRAW_Y-HALF_BLOCKSIZE),DRAW_Y};
+			triangles.add(new Polygon(x1,y1,4));
+		} else if (left && !up && !upleft){ //only left
+			//Top Left (into left)
+			int[] x1 = {DRAW_X,MID_X,(DRAW_X-HALF_BLOCKSIZE)};
+			int[] y1 = {MID_Y,DRAW_Y,DRAW_Y};
+			triangles.add(new Polygon(x1,y1,3));
+		} else if (up) { //up takes priority over down
+			//Top Left (into up)
+			int[] x1 = {DRAW_X,MID_X,DRAW_X};
+			int[] y1 = {MID_Y,DRAW_Y,(DRAW_Y-HALF_BLOCKSIZE)};
+			triangles.add(new Polygon(x1,y1,3));
+		} else { //asume none above or to the left
+			//Top Left
+			int[] x1 = {DRAW_X,MID_X,DRAW_X};
+			int[] y1 = {MID_Y,DRAW_Y,DRAW_Y};
+			triangles.add(new Polygon(x1,y1,3));
+		}
+		
+		//Checking RIGHT && DOWN && DOWNRIGHT
+		if (right && down && downright){
+			//Bottom Right Diamond (into right down and downright)
+			int[] x1 = {MID_X,END_X,(END_X+HALF_BLOCKSIZE),END_X};
+			int[] y1 = {END_Y,MID_Y,END_Y,(END_Y+HALF_BLOCKSIZE)};
+			triangles.add(new Polygon(x1,y1,4));
+		} else if (right && !down && !downright){ //only right
+			//Bottom Right (into right)
+			int[] x1 = {MID_X,END_X,(END_X+HALF_BLOCKSIZE)};
+			int[] y1 = {END_Y,MID_Y,END_Y};
+			triangles.add(new Polygon(x1,y1,3));
+		} else if (down) { //down takes priority over right
+			//Bottom Right (into down)
+			int[] x1 = {END_X,MID_X,END_X};
+			int[] y1 = {MID_Y,END_Y,(END_Y+HALF_BLOCKSIZE)};
+			triangles.add(new Polygon(x1,y1,3));
+		} else { //assume none below or to the right
+			//Bottom Right Triangle
+			int[] x1 = {MID_X,END_X,END_X};
+			int[] y1 = {END_Y,END_Y,MID_Y};
+			triangles.add(new Polygon(x1,y1,3));
+		}
+		
+		drawShape(leftEye,Sprite.COLOR_FACE_EYES,Sprite.COLOR_BORDER);
+		drawShape(rightEye,Sprite.COLOR_FACE_EYES,Sprite.COLOR_BORDER);
+		if (MOUTH){ //A cloud block
+			drawShape(mouth,Sprite.COLOR_CLOUD_MOUTH,Sprite.COLOR_BORDER);
+			for(Polygon trig : triangles){ drawShape(trig,Sprite.COLOR_CLOUD_WHITE,Sprite.COLOR_BORDER); }
+		} else { //A yellow face block
+			drawShape(mouth,Sprite.COLOR_FACE_YELLOW,Sprite.COLOR_BORDER);
+			for(Polygon trig : triangles){ drawShape(trig,Sprite.COLOR_FACE_YELLOW,Sprite.COLOR_BORDER); }
+		}
+		
+		
+	}
+	
+	/**
+	 * Draw a brown face block at XY
+	 * @param X The x coordinate to draw it at
+	 * @param Y The y coordinate to draw it at
+	 * @param ADJ The adjacent blocks of the same ID
+	 * @param LENGTH The number of brown face blocks to the left (inclusive)
+	 * @param HEIGHT The number of brown faces above (inclusive)
+	 */
+	private void drawBrownFaceBlock(int X, int Y, int ADJ, int LENGTH, int HEIGHT){
+		int DRAW_X = X * BLOCKSIZE, DRAW_Y = Y * BLOCKSIZE;
+		int MID_X = DRAW_X + HALF_BLOCKSIZE, MID_Y = DRAW_Y + HALF_BLOCKSIZE;
+		int END_X = DRAW_X + BLOCKSIZE, END_Y = DRAW_Y + BLOCKSIZE;
+		int QUARTER_X = DRAW_X + QUARTER_BLOCKSIZE, QUARTER_Y = DRAW_Y + QUARTER_BLOCKSIZE;
+		int THREE_X = END_X - QUARTER_BLOCKSIZE, THREE_Y = END_Y - QUARTER_BLOCKSIZE;
+		
+		boolean left = (ADJ & ML) > 0,		right = (ADJ & MR) > 0,
+				up = (ADJ & TM) > 0,		down = (ADJ & BM) > 0,
+				upleft = (ADJ & TL) > 0,	upright = (ADJ & TR) > 0,
+				downleft = (ADJ & BL) > 0,	downright = (ADJ & BR) > 0;
+		//Define left eye
+		int[] x_left = {QUARTER_X,QUARTER_X,DRAW_X}, y_left = {THREE_Y,MID_Y,QUARTER_Y};
+		Polygon leftEye = new Polygon(x_left,y_left,3);
+		//Define right eye
+		int[] x_right = {THREE_X,THREE_X,END_X}, y_right = {THREE_Y,MID_Y,QUARTER_Y};
+		Polygon rightEye = new Polygon(x_right,y_right,3);
+		
+		ArrayList<Polygon> triangles = new ArrayList<Polygon>();
+		
+		if (right && !down){
+			//Right Diamond (into right)
+			int[] x1 = {END_X,THREE_X,END_X,(END_X+QUARTER_BLOCKSIZE)};
+			int[] y1 = {QUARTER_Y,THREE_Y,END_Y,THREE_Y};
+			triangles.add(new Polygon(x1,y1,4));
+		}
+		if (left && !down){
+			//Left Diamond (into left)
+			int[] x1 = {DRAW_X,QUARTER_X,DRAW_X,(DRAW_X-QUARTER_BLOCKSIZE)};
+			int[] y1 = {QUARTER_Y,THREE_Y,END_Y,THREE_Y};
+			triangles.add(new Polygon(x1,y1,4));
+		}
+		if (!up){
+			//Top rhombus
+			int[] xr = {DRAW_X,QUARTER_X,THREE_X,END_X};
+			int[] yr = {QUARTER_Y,MID_Y,MID_Y,QUARTER_Y};
+			triangles.add(new Polygon(xr,yr,4));
+		}
+		if (!down){
+			//Bottom rhombus
+			int[] xr = {DRAW_X,QUARTER_X,THREE_X,END_X};
+			int[] yr = {END_Y,THREE_Y,THREE_Y,END_Y};
+			triangles.add(new Polygon(xr,yr,4));
+			if (!right){
+				//Right rhombus
+				int[] x1 = {THREE_X,THREE_X,END_X,END_X};
+				int[] y1 = {THREE_Y,THREE_Y,QUARTER_Y,END_Y};
+				triangles.add(new Polygon(x1,y1,4));
+			}
+			if (!left){
+				//Left rhombus
+				int[] x1 = {QUARTER_X,QUARTER_X,DRAW_X,DRAW_X};
+				int[] y1 = {THREE_Y,THREE_Y,QUARTER_Y,END_Y};
+				triangles.add(new Polygon(x1,y1,4));
+			}
+		} else{ //if DOWN
+			//Right rhombus (into down)
+			int[] xr = {THREE_X,THREE_X,END_X,END_X};
+			int[] yr = {THREE_Y,(END_Y+HALF_BLOCKSIZE),(END_Y+QUARTER_BLOCKSIZE),QUARTER_Y};
+			triangles.add(new Polygon(xr,yr,4));
+			//Left rhombus (into down)
+			int[] xl = {QUARTER_X,QUARTER_X,DRAW_X,DRAW_X};
+			int[] yl = {THREE_Y,(END_Y+HALF_BLOCKSIZE),(END_Y+QUARTER_BLOCKSIZE),QUARTER_Y};
+			triangles.add(new Polygon(xl,yl,4));
+		}
+		//Center rectangle up to top rhombus
+		int yCalc = MID_Y - (BLOCKSIZE * (HEIGHT-1));
+		int[] xc = {QUARTER_X,THREE_X,THREE_X,QUARTER_X};
+		int[] yc = {THREE_Y,THREE_Y,yCalc,yCalc};
+		triangles.add(new Polygon(xc,yc,4));
+		//Top Brown bar
+		if (!up){
+			int xCalc = END_X - (BLOCKSIZE * (LENGTH));
+			int[] xb = {xCalc,xCalc,END_X,END_X};
+			int[] yb = {DRAW_Y,QUARTER_Y,QUARTER_Y,DRAW_Y};
+			triangles.add(new Polygon(xb,yb,4));
+		}
+		
+		drawShape(leftEye,Sprite.COLOR_FACE_EYES,Sprite.COLOR_BORDER);
+		drawShape(rightEye,Sprite.COLOR_FACE_EYES,Sprite.COLOR_BORDER);
+		for(Polygon trig : triangles){ drawShape(trig,Sprite.COLOR_FACE_BROWN,Sprite.COLOR_BORDER); }
+		
+		
+	}
+	
+	/**
+	 * Draw a coin at XY
+	 * @param X The x coordinate to draw it at
+	 * @param Y The y coordinate to draw it at
+	 */
+	private void drawCoin(int X, int Y){
+		int DRAW_X = X * BLOCKSIZE, DRAW_Y = Y * BLOCKSIZE;
+		int MID_X = DRAW_X + HALF_BLOCKSIZE, MID_Y = DRAW_Y + HALF_BLOCKSIZE;
+		int END_X = DRAW_X + BLOCKSIZE, END_Y = DRAW_Y + BLOCKSIZE;
+		int QUARTER_X = DRAW_X + QUARTER_BLOCKSIZE, THREE_X = END_X - QUARTER_BLOCKSIZE;
+		
+		//Define the diamond for the coin
+		int[] xpoints_diamond = {QUARTER_X,MID_X,THREE_X,MID_X};
+		int[] ypoints_diamond = {MID_Y,DRAW_Y,MID_Y,END_Y};
+		Polygon middleDiamond = new Polygon(xpoints_diamond,ypoints_diamond,4);
+		
+		drawShape(middleDiamond,Sprite.COLOR_COIN,Sprite.COLOR_BORDER);
+	}
 	
 	/**
 	 * Draw the cap of a vertical pipe from the left
@@ -1275,10 +1632,42 @@ public class QuiltGenerator {
 					if (VERBOSE > 0) System.out.println("Question Block at (" + y + "," + x + ")");
 					drawQuestionBlock(x,y,ADJ,up_upright);
 					break;
+				case Sprite.ID_MUSIC_NOTE: //When a music note block is discovered
+					if (VERBOSE > 0) System.out.println("Music Note Block at (" + y + "," + x + ")");
+					drawMusicBlock(x,y,ADJ);
+					break;
+				case Sprite.ID_FACE_YELLOW: //When a yellow face block is discovered
+					if (VERBOSE > 0) System.out.println("Yellow Face Block at (" + y + "," + x + ")");
+					drawFaceBlock(x,y,ADJ,false);
+					break;
+				case Sprite.ID_FACE_BROWN: //When a brown face block is discovered
+					if (VERBOSE > 0) System.out.println("Brown Face Block at (" + y + "," + x + ")");
+					int tempYBrown = y;
+					int tempHeightBrown = 1;
+					while(tempYBrown > 0 && level[tempYBrown-1][x] == Sprite.ID_FACE_BROWN){
+						tempHeightBrown++;
+						tempYBrown--;
+					}
+					int tempXBrown = x;
+					int tempLengthBrown = 1;
+					while (tempXBrown > 0 && level[y][tempXBrown-1] == Sprite.ID_FACE_BROWN){
+						tempLengthBrown++;
+						tempXBrown--;
+					}
+					drawBrownFaceBlock(x,y,ADJ,tempLengthBrown,tempHeightBrown);
+					break;
+				case Sprite.ID_CLOUD: //When a cloud block is discovered
+					if (VERBOSE > 0) System.out.println("Cloud Block at (" + y + "," + x + ")");
+					drawFaceBlock(x,y,ADJ,true);
+					break;
 				case Sprite.ID_MARIO:
 					if (VERBOSE > 0) System.out.println("Mario at (" + y + "," + x + ")");
 					marioX = x;
 					marioY = y;
+					break;
+				case Sprite.ID_COIN:
+					if (VERBOSE > 0) System.out.println("Coin at (" + y + "," + x + ")");
+					drawCoin(x,y);
 					break;
 				case Sprite.ID_PIPE_VERTI_TL: //When the cap of a vertical pipe is discovered
 				case Sprite.ID_PIPE_VERTI_BL:
@@ -1286,13 +1675,13 @@ public class QuiltGenerator {
 					drawVerticalPipeEnd(x,y);
 					break;
 				case Sprite.ID_PIPE_VERTI_ML: //When the left part of a vertical pipe body is discovered
-					int tempY = y;
-					int tempHeight = 1;
-					while(tempY > 0 && level[tempY-1][x] == Sprite.ID_PIPE_VERTI_ML){
-						tempHeight++;
-						tempY--;
+					int tempYPipe = y;
+					int tempHeightPipe = 1;
+					while(tempYPipe > 0 && level[tempYPipe-1][x] == Sprite.ID_PIPE_VERTI_ML){
+						tempHeightPipe++;
+						tempYPipe--;
 					}
-					drawVerticalPipe(x,y,tempHeight);
+					drawVerticalPipe(x,y,tempHeightPipe);
 					break;
 				case Sprite.ID_PIPE_VERTI_TR: //This pipe will be drawn over but should not act as air
 				case Sprite.ID_PIPE_VERTI_MR: //This pipe will be drawn over but should not act as air
@@ -1304,13 +1693,13 @@ public class QuiltGenerator {
 					drawHorizontalPipeEnd(x,y);
 					break;
 				case Sprite.ID_PIPE_HORIZ_BM: //When the bottom part of a horizontal pipe body is discovered
-					int tempX = x;
-					int tempLength = 1;
-					while (tempX > 0 && level[y][tempX-1] == Sprite.ID_PIPE_HORIZ_BM){
-						tempLength++;
-						tempX--;
+					int tempXPipe = x;
+					int tempLengthPipe = 1;
+					while (tempXPipe > 0 && level[y][tempXPipe-1] == Sprite.ID_PIPE_HORIZ_BM){
+						tempLengthPipe++;
+						tempXPipe--;
 					}
-					drawHorizontalPipe(x,y,tempLength);
+					drawHorizontalPipe(x,y,tempLengthPipe);
 				case Sprite.ID_PIPE_HORIZ_TL: //This pipe will be drawn over but should not act as air
 				case Sprite.ID_PIPE_HORIZ_TM: //This pipe will be drawn over but should not act as air
 				case Sprite.ID_PIPE_HORIZ_TR: //This pipe will be drawn over but should not act as air
@@ -1334,42 +1723,58 @@ public class QuiltGenerator {
 	 */
 	public static void main(String[] args) throws IOException{
 		int VERBOSE = 0;
-		int[][] LEVEL = new int[10][10];
-		for (int i = 0; i < 10; i++){
-			for (int j = 0; j < 10; j++){
-				LEVEL[i][j] = 0;//Sprite.ID_QUESTION_BLOCK;
+		int[][] LEVEL = new int[10][15];
+		for (int i = 0; i < LEVEL.length; i++){
+			for (int j = 0; j < LEVEL[0].length; j++){
+				LEVEL[i][j] = 0;
 			}
 		}
 		
 		int q = Sprite.ID_QUESTION_BLOCK;
+		int n = Sprite.ID_MUSIC_NOTE;
 		int m = Sprite.ID_MARIO;
-		/*	 ____ ____ ____
-		 * 	| /\ | /\ | /\ |
-		 * 	|_\/_|_\/_|_\/_|
-		 * 	| /\ | /\ | /\ |
-		 * 	|_\/_|_\/_|_\/_|
-		 * 	| /\ | /\ | /\ |
-		 * 	|_\/_|_\/_|_\/_| 
-		 */
-		LEVEL[1][1] = q;	LEVEL[1][2] = q;	LEVEL[1][3] = q;
-		LEVEL[2][1] = q;	LEVEL[2][2] = q;	LEVEL[2][3] = q;
-		LEVEL[3][1] = q;	LEVEL[3][2] = q;	LEVEL[3][3] = q;
-		
+		int y = Sprite.ID_FACE_YELLOW;
+		int b = Sprite.ID_FACE_BROWN;
+		int c = Sprite.ID_CLOUD;
+		int d = Sprite.ID_COIN;
+		//Question Mark Blocks
+		LEVEL[0][0] = q;	LEVEL[0][1] = q;	LEVEL[0][2] = q;
+		LEVEL[1][0] = q;	LEVEL[1][1] = q;	LEVEL[1][2] = q;
+		LEVEL[2][0] = q;	LEVEL[2][1] = q;	LEVEL[2][2] = q;
+		//Musical Note Blocks
+		LEVEL[0][3] = n;	LEVEL[0][4] = n;	LEVEL[0][5] = n;
+		LEVEL[1][3] = n;	LEVEL[1][4] = n;	LEVEL[1][5] = n;
+		LEVEL[2][3] = n;	LEVEL[2][4] = n;	LEVEL[2][5] = n;
+		//Yellow Face Blocks
+		LEVEL[0][6] = y;	LEVEL[0][7] = y;	LEVEL[0][8] = y;
+		LEVEL[1][6] = y;	LEVEL[1][7] = y;	LEVEL[1][8] = y;
+		LEVEL[2][6] = y;	LEVEL[2][7] = y;	LEVEL[2][8] = y;
+		//Brown Face Blocks
+		LEVEL[0][9] = b;	LEVEL[0][10] = b;	LEVEL[0][11] = b;
+		LEVEL[1][9] = b;	LEVEL[1][10] = b;	LEVEL[1][11] = b;
+		LEVEL[2][9] = b;	LEVEL[2][10] = b;	LEVEL[2][11] = b;
+		//Cloud Blocks
+		LEVEL[0][12] = c;	LEVEL[0][13] = c;	LEVEL[0][14] = c;
+		LEVEL[1][12] = c;	LEVEL[1][13] = c;	LEVEL[1][14] = c;
+		LEVEL[2][12] = c;	LEVEL[2][13] = c;	LEVEL[2][14] = c;
+		//Mario
 		LEVEL[8][2] = m;
+		//Coins
+		LEVEL[8][3] = d;	LEVEL[8][4] = d;	LEVEL[8][5] = d;
 		//Pipe going up
-		LEVEL[6][6] = Sprite.ID_PIPE_VERTI_TL; LEVEL[6][7] = Sprite.ID_PIPE_VERTI_TR;
-		LEVEL[7][6] = Sprite.ID_PIPE_VERTI_ML; LEVEL[7][7] = Sprite.ID_PIPE_VERTI_MR;
+		LEVEL[7][6] = Sprite.ID_PIPE_VERTI_TL; LEVEL[7][7] = Sprite.ID_PIPE_VERTI_TR;
 		LEVEL[8][6] = Sprite.ID_PIPE_VERTI_ML; LEVEL[8][7] = Sprite.ID_PIPE_VERTI_MR;
+		LEVEL[9][6] = Sprite.ID_PIPE_VERTI_ML; LEVEL[9][7] = Sprite.ID_PIPE_VERTI_MR;
 		//Pipe going left
-		LEVEL[2][7] = Sprite.ID_PIPE_HORIZ_TL; LEVEL[2][8] = Sprite.ID_PIPE_HORIZ_TM; LEVEL[2][9] = Sprite.ID_PIPE_HORIZ_TM;
-		LEVEL[3][7] = Sprite.ID_PIPE_HORIZ_BL; LEVEL[3][8] = Sprite.ID_PIPE_HORIZ_BM; LEVEL[3][9] = Sprite.ID_PIPE_HORIZ_BM;
+		LEVEL[3][7] = Sprite.ID_PIPE_HORIZ_TL; LEVEL[3][8] = Sprite.ID_PIPE_HORIZ_TM; LEVEL[3][9] = Sprite.ID_PIPE_HORIZ_TM;
+		LEVEL[4][7] = Sprite.ID_PIPE_HORIZ_BL; LEVEL[4][8] = Sprite.ID_PIPE_HORIZ_BM; LEVEL[4][9] = Sprite.ID_PIPE_HORIZ_BM;
 		//Pipe going right
-		LEVEL[4][7] = Sprite.ID_PIPE_HORIZ_TM; LEVEL[4][8] = Sprite.ID_PIPE_HORIZ_TM; LEVEL[5][9] = Sprite.ID_PIPE_HORIZ_TR;
-		LEVEL[5][7] = Sprite.ID_PIPE_HORIZ_BM; LEVEL[5][8] = Sprite.ID_PIPE_HORIZ_BM; LEVEL[5][9] = Sprite.ID_PIPE_HORIZ_BR;		
+		LEVEL[5][7] = Sprite.ID_PIPE_HORIZ_TM; LEVEL[5][8] = Sprite.ID_PIPE_HORIZ_TM; LEVEL[5][9] = Sprite.ID_PIPE_HORIZ_TR;
+		LEVEL[6][7] = Sprite.ID_PIPE_HORIZ_BM; LEVEL[6][8] = Sprite.ID_PIPE_HORIZ_BM; LEVEL[6][9] = Sprite.ID_PIPE_HORIZ_BR;		
 		//Pipe going down
-		LEVEL[6][8] = Sprite.ID_PIPE_VERTI_ML; LEVEL[6][9] = Sprite.ID_PIPE_VERTI_MR;
 		LEVEL[7][8] = Sprite.ID_PIPE_VERTI_ML; LEVEL[7][9] = Sprite.ID_PIPE_VERTI_MR;
-		LEVEL[8][8] = Sprite.ID_PIPE_VERTI_BL; LEVEL[8][9] = Sprite.ID_PIPE_VERTI_BR;
+		LEVEL[8][8] = Sprite.ID_PIPE_VERTI_ML; LEVEL[8][9] = Sprite.ID_PIPE_VERTI_MR;
+		LEVEL[9][8] = Sprite.ID_PIPE_VERTI_BL; LEVEL[9][9] = Sprite.ID_PIPE_VERTI_BR;
 		
 		QuiltGenerator qG = new QuiltGenerator(LEVEL);
 		qG.generate(VERBOSE);

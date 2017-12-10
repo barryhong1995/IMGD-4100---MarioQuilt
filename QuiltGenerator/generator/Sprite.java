@@ -67,11 +67,22 @@ public class Sprite {
 	public static final Color COLOR_MARIO_BLUE = new Color(64,128,152); //408098
 	public static final Color COLOR_MARIO_SHOES = new Color(136,88,24); //885818
 	//Question Block
-	public static final Color COLOR_QUESTIONMARK_DIAMOND = new Color(64,64,64); //404040
-	public static final Color COLOR_QUESTIONMARK_BG = new Color(253,214,0); //FDD600
+	public static final Color COLOR_QUESTION_DIAMOND = new Color(192,192,192); //C0C0C0
+	public static final Color COLOR_QUESTION_BG = new Color(253,214,0); //FDD600
+	//Question Block
+	public static final Color COLOR_MUSIC_NOTE = new Color(89,89,89); //595959
+	public static final Color COLOR_MUSIC_BG = new Color(221,221,221); //DDDDDD
 	//Pipes
 	public static final Color COLOR_PIPE_LIGHT = new Color(195,255,29); //C3FF1D
 	public static final Color COLOR_PIPE_GREEN = new Color(80,205,0); //50CD00
 	public static final Color COLOR_PIPE_DARK = new Color(27,147,19); //1B9313
+	//Face Blocks
+	public static final Color COLOR_FACE_EYES = new Color(64,64,64); //404040
+	public static final Color COLOR_FACE_YELLOW = new Color(248,216,32); //F8D820
+	public static final Color COLOR_FACE_BROWN = new Color(136,88,24); //885818
+	public static final Color COLOR_CLOUD_WHITE = new Color(242,242,242); //F2F2F2
+	public static final Color COLOR_CLOUD_MOUTH = new Color(248,0,128); //F80080
+	//Coin
+	public static final Color COLOR_COIN = new Color(248,192,0); //F8C000
 	
 }
