@@ -21,6 +21,7 @@ public class QuiltGenerator {
 		
 	private int[][] level;
 	private int world = 0;
+	private ArrayList<Polygon> skyPolygons;
 	private BufferedImage output_image;
 	private Graphics2D g2D;
 	
@@ -78,6 +79,11 @@ public class QuiltGenerator {
 	 */
 	public int[][] getLevel(){
 		return level;
+	}
+	
+	//TODO: Draw Grass - See: Graph paper pg. 11
+	private void drawGrass(int X, int Y){
+		
 	}
 	
 	/**
@@ -160,7 +166,7 @@ public class QuiltGenerator {
 	 * @throws IOException
 	 */
 	private void drawQuestionBlock(int X, int Y, int ADJ, boolean up_upright) throws IOException{
-		drawCenteredDiamondBlock(X,Y,ADJ,up_upright,Sprite.COLOR_QUESTION_BG,Sprite.COLOR_QUESTION_DIAMOND);
+		drawCenteredDiamondBlock(X,Y,ADJ,up_upright,Sprite.COLOR_QUESTION_BG,Sprite.COLOR_QUESTION_DIAMOND,false);
 	}
 	
 	/**
@@ -171,9 +177,10 @@ public class QuiltGenerator {
 	 * @param up_upright Whether the block up & to the right has the same block above it
 	 * @param color_background The background color of the block
 	 * @param color_diamond The color of the diamond
+	 * @param isCoin Whether a coin is being drawn. If true, add to skyPolygons instead
 	 * @throws IOException
 	 */
-	private void drawCenteredDiamondBlock(int X, int Y, int ADJ, boolean up_upright, Color color_background, Color color_diamond) throws IOException{
+	private void drawCenteredDiamondBlock(int X, int Y, int ADJ, boolean up_upright, Color color_background, Color color_diamond, boolean isCoin) throws IOException{
 		int DRAW_X = X * BLOCKSIZE, DRAW_Y = Y * BLOCKSIZE;
 		int MID_X = DRAW_X + HALF_BLOCKSIZE, MID_Y = DRAW_Y + HALF_BLOCKSIZE;
 		int END_X = DRAW_X + BLOCKSIZE, END_Y = DRAW_Y + BLOCKSIZE;
@@ -1098,9 +1105,12 @@ public class QuiltGenerator {
 		 * 	| /\ | /\ | /\ |
 		 * 	|_\/_|_\/_|_\/_| 
 		 */
-		
-		for (Polygon trig : triangles){
-			drawShape(trig, color_background, Sprite.COLOR_BORDER);
+		if (isCoin){
+			skyPolygons.addAll(triangles);
+		} else{
+			for (Polygon trig : triangles){
+				drawShape(trig, color_background, Sprite.COLOR_BORDER);
+			}
 		}
 		drawShape(middleDiamond, color_diamond, Sprite.COLOR_BORDER);
 	}
@@ -1434,19 +1444,10 @@ public class QuiltGenerator {
 	 * Draw a coin at XY
 	 * @param X The x coordinate to draw it at
 	 * @param Y The y coordinate to draw it at
+	 * @throws IOException 
 	 */
-	private void drawCoin(int X, int Y){
-		int DRAW_X = X * BLOCKSIZE, DRAW_Y = Y * BLOCKSIZE;
-		int MID_X = DRAW_X + HALF_BLOCKSIZE, MID_Y = DRAW_Y + HALF_BLOCKSIZE;
-		int END_X = DRAW_X + BLOCKSIZE, END_Y = DRAW_Y + BLOCKSIZE;
-		int QUARTER_X = DRAW_X + QUARTER_BLOCKSIZE, THREE_X = END_X - QUARTER_BLOCKSIZE;
-		
-		//Define the diamond for the coin
-		int[] xpoints_diamond = {QUARTER_X,MID_X,THREE_X,MID_X};
-		int[] ypoints_diamond = {MID_Y,DRAW_Y,MID_Y,END_Y};
-		Polygon middleDiamond = new Polygon(xpoints_diamond,ypoints_diamond,4);
-		
-		drawShape(middleDiamond,Sprite.COLOR_COIN,Sprite.COLOR_BORDER);
+	private void drawCoin(int X, int Y, int ADJ, boolean up_upright) throws IOException{
+		drawCenteredDiamondBlock(X,Y,ADJ,up_upright,Sprite.COLOR_SKY,Sprite.COLOR_COIN,true);
 	}
 	
 	/**
@@ -1539,6 +1540,13 @@ public class QuiltGenerator {
 		int[] y_body_dark = {(TOP+BLOCKSIZE),END_Y,END_Y};
 		darkGreen.add(new Polygon(x_body_dark,y_body_dark,3));
 		
+		//Airspace to the left and right
+		int[] x_airspace_left = {DRAW_X,DRAW_X,(DRAW_X+EIGTH_BLOCKSIZE),(DRAW_X+EIGTH_BLOCKSIZE)};
+		int[] x_airspace_right = {(END_X+BLOCKSIZE),(END_X+BLOCKSIZE),(END_X+BLOCKSIZE-EIGTH_BLOCKSIZE),(END_X+BLOCKSIZE-EIGTH_BLOCKSIZE)};
+		int[] y_airspace = {END_Y,(TOP+BLOCKSIZE),(TOP+BLOCKSIZE),END_Y};
+		skyPolygons.add(new Polygon(x_airspace_left,y_airspace,4));
+		skyPolygons.add(new Polygon(x_airspace_right,y_airspace,4));
+		
 		//Draw The Pipe
 		for (Polygon shape : lightGreen){ drawShape(shape, Sprite.COLOR_PIPE_LIGHT, Sprite.COLOR_BORDER); }
 		for (Polygon shape : green){ drawShape(shape, Sprite.COLOR_PIPE_GREEN, Sprite.COLOR_BORDER); }
@@ -1573,10 +1581,86 @@ public class QuiltGenerator {
 		int[] y_body_dark = {(END_Y-EIGTH_BLOCKSIZE),(END_Y-EIGTH_BLOCKSIZE),(DRAW_Y-BLOCKSIZE+EIGTH_BLOCKSIZE)};
 		darkGreen.add(new Polygon(x_body_dark,y_body_dark,3));
 		
+		//Airspace above and below
+		int[] x_airspace = {SIDE_X,SIDE_X,END_X,END_X};
+		int[] y_airspace_above = {(DRAW_Y-BLOCKSIZE),(DRAW_Y-BLOCKSIZE+EIGTH_BLOCKSIZE),(DRAW_Y-BLOCKSIZE+EIGTH_BLOCKSIZE),(DRAW_Y-BLOCKSIZE)};
+		int[] y_airspace_below = {END_Y,(END_Y-EIGTH_BLOCKSIZE),(END_Y-EIGTH_BLOCKSIZE),END_Y};
+		skyPolygons.add(new Polygon(x_airspace,y_airspace_above,4));
+		skyPolygons.add(new Polygon(x_airspace,y_airspace_below,4));
+		
 		//Draw The Pipe
 		for (Polygon shape : lightGreen){ drawShape(shape, Sprite.COLOR_PIPE_LIGHT, Sprite.COLOR_BORDER); }
 		for (Polygon shape : green){ drawShape(shape, Sprite.COLOR_PIPE_GREEN, Sprite.COLOR_BORDER); }
 		for (Polygon shape : darkGreen){ drawShape(shape, Sprite.COLOR_PIPE_DARK, Sprite.COLOR_BORDER); }
+	}
+	
+	/**
+	 * Create a rectangular Polygon where the bottom right corner is XY and it covers all same blocks
+	 * @param X The starting x coordinate
+	 * @param Y The starting y coordinate
+	 * @return The resulting rectangle Polygon
+	 */
+	private Polygon findUpLeftRect(int X, int Y){
+		/*
+		 * Rectangle will be structured in the following way:
+		 * (x_points[2],y_points[2]) - (x_points[1],y_points[1])
+		 *             |                           |
+		 * (x_points[3],y_points[3]) - (x_points[0],y_points[0])
+		 */
+		int BLOCK_ID = level[Y][X];
+		int tempX = X, tempY = Y;
+		int length = 1, height = 1;
+		while (tempX > 0 && level[tempY][tempX-1] == BLOCK_ID){
+			length++;
+			tempX--;
+		}
+		while (tempY > 0 && rowValidAbove(X,tempY,length)){
+			height++;
+			tempY--;
+		}
+//		System.out.println("X and Y are " + X + " & " + Y);
+//		System.out.println("Length and height are " + length + " & " + height);
+		int xBR = (X+1)*BLOCKSIZE, xTR = xBR;
+		int yBR = (Y+1)*BLOCKSIZE, yBL = yBR;
+		int yTR = ((Y+1)-height)*BLOCKSIZE, yTL = yTR;
+		int xTL = ((X+1)-length)*BLOCKSIZE, xBL = xTL;
+//		System.out.println("xBR: " + xBR/BLOCKSIZE + ", xTR: " + xTR/BLOCKSIZE +
+//							", xTL: " + xTL/BLOCKSIZE + ", xBL: " + xBL/BLOCKSIZE);
+//		System.out.println("yBR: " + yBR/BLOCKSIZE + ", yTR: " + yTR/BLOCKSIZE +
+//							", yTL: " + yTL/BLOCKSIZE + ", yBL: " + yBL/BLOCKSIZE);
+		int[] x_points = {xBR,xTR,xTL,xBL}, y_points = {yBR,yTR,yTL,yBL};
+		
+		return new Polygon(x_points, y_points,4);
+	}
+	
+	/**
+	 * Return whether a strip of length LENGTH above XY & moving left is the same as the strip at XY & moving left
+	 * @param X The starting x coordinate
+	 * @param Y The starting y coordinate
+	 * @param LENGTH The length of the strip moving left
+	 * @return Whether the strips are equivalent
+	 */
+	private boolean rowValidAbove(int X, int Y, int LENGTH){
+		boolean result = true;
+		for (int i = 0; i < LENGTH; i++){
+			if (X-i < 0 || Y - 1 < 0) return false;
+			result = result && (level[Y][X-i] == level[Y-1][X-i]);
+			if (result != true){
+				return result;
+			}
+		}
+		return result;
+	}
+	  
+	//TODO: You need to optimize the polygons before you can triangulate them. Learn from your misakes Aidan.
+	//Do not suffer the same way twice. 3:00 AM Aidan believes in you. Don't let ther faith in you go to waste
+	/**
+	 * Draw the sky polygons
+	 */
+	private void drawSky(){
+		for(Polygon poly : skyPolygons){
+			drawShape(poly,Sprite.COLOR_SKY,Sprite.COLOR_BORDER);
+		}
 	}
 	
 	/**
@@ -1604,6 +1688,11 @@ public class QuiltGenerator {
 		}
 	}
 
+
+	
+	
+	
+	
 	/**
 	 * Generate the Quilt
 	 * @param VERBOSE What level of detail to print to the console with. 0 for none, 1 for all.
@@ -1613,6 +1702,7 @@ public class QuiltGenerator {
 		int marioX = -1, marioY = -1;
 		int ADJ = 0; //This integer stores whether adjacent blocks share the same ID
 		boolean up_upright = false; //Whether the block one space right and two spaces up shares the same ID as this
+		skyPolygons = new ArrayList<Polygon>();
 		for (int y = 0; y < level.length; y++){
 			for (int x = 0; x < level[0].length; x++){
 				int thisID = level[y][x];	//for now, only Sprite.ID_QUESTION_BLOCK
@@ -1667,7 +1757,7 @@ public class QuiltGenerator {
 					break;
 				case Sprite.ID_COIN:
 					if (VERBOSE > 0) System.out.println("Coin at (" + y + "," + x + ")");
-					drawCoin(x,y);
+					drawCoin(x,y,ADJ,up_upright);
 					break;
 				case Sprite.ID_PIPE_VERTI_TL: //When the cap of a vertical pipe is discovered
 				case Sprite.ID_PIPE_VERTI_BL:
@@ -1705,6 +1795,7 @@ public class QuiltGenerator {
 				case Sprite.ID_PIPE_HORIZ_TR: //This pipe will be drawn over but should not act as air
 					break;
 				case Sprite.ID_AIR:
+					skyPolygons.add(findUpLeftRect(x,y));
 				default:
 					int[] xTemp = {x*BLOCKSIZE,x*BLOCKSIZE,(x+1)*BLOCKSIZE,(x+1)*BLOCKSIZE};
 					int[] yTemp = {y*BLOCKSIZE,(y+1)*BLOCKSIZE,(y+1)*BLOCKSIZE,y*BLOCKSIZE};
@@ -1714,6 +1805,9 @@ public class QuiltGenerator {
 			}
 		}
 		drawMario(marioX,marioY);
+
+		drawSky();
+		
 		outputImageToFile("output.png");
 	}
 	
@@ -1732,7 +1826,6 @@ public class QuiltGenerator {
 		
 		int q = Sprite.ID_QUESTION_BLOCK;
 		int n = Sprite.ID_MUSIC_NOTE;
-		int m = Sprite.ID_MARIO;
 		int y = Sprite.ID_FACE_YELLOW;
 		int b = Sprite.ID_FACE_BROWN;
 		int c = Sprite.ID_CLOUD;
@@ -1758,7 +1851,7 @@ public class QuiltGenerator {
 		LEVEL[1][12] = c;	LEVEL[1][13] = c;	LEVEL[1][14] = c;
 		LEVEL[2][12] = c;	LEVEL[2][13] = c;	LEVEL[2][14] = c;
 		//Mario
-		LEVEL[8][2] = m;
+		LEVEL[8][2] = Sprite.ID_MARIO; LEVEL[7][2] = Sprite.ID_MARIO;
 		//Coins
 		LEVEL[8][3] = d;	LEVEL[8][4] = d;	LEVEL[8][5] = d;
 		//Pipe going up
@@ -1775,8 +1868,15 @@ public class QuiltGenerator {
 		LEVEL[7][8] = Sprite.ID_PIPE_VERTI_ML; LEVEL[7][9] = Sprite.ID_PIPE_VERTI_MR;
 		LEVEL[8][8] = Sprite.ID_PIPE_VERTI_ML; LEVEL[8][9] = Sprite.ID_PIPE_VERTI_MR;
 		LEVEL[9][8] = Sprite.ID_PIPE_VERTI_BL; LEVEL[9][9] = Sprite.ID_PIPE_VERTI_BR;
+		//Ground
+		LEVEL[9][0] = Sprite.ID_GRASS_TM;
+		LEVEL[9][1] = Sprite.ID_GRASS_TM;
+		LEVEL[9][2] = Sprite.ID_GRASS_TM;
+		LEVEL[9][3] = Sprite.ID_GRASS_TM;
+		LEVEL[9][4] = Sprite.ID_GRASS_TM;
+		LEVEL[9][5] = Sprite.ID_GRASS_TM;
 		
-		QuiltGenerator qG = new QuiltGenerator(LEVEL);
+		QuiltGenerator qG = new QuiltGenerator(LEVEL);		
 		qG.generate(VERBOSE);
 		
 	}

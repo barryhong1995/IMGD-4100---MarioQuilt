@@ -84,5 +84,12 @@ public class Sprite {
 	public static final Color COLOR_CLOUD_MOUTH = new Color(248,0,128); //F80080
 	//Coin
 	public static final Color COLOR_COIN = new Color(248,192,0); //F8C000
+	//Sky
+	public static final Color COLOR_SKY = new Color(173,213,248); //ADD5F8
+	//Grass
+	public static final Color COLOR_GRASS_LIGHT = new Color(0,200,0); //00C800
+	public static final Color COLOR_GRASS_DARK = new Color(0,128,0); //008000
+	public static final Color COLOR_DIRT_LIGHT = new Color(216,160,56); //D8A038
+	public static final Color COLOR_DIRT_DARK = new Color(136,88,24); //885818
 	
 }
