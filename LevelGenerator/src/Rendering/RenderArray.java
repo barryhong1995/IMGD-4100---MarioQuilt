@@ -1,3 +1,6 @@
+package Rendering;
+
+import Rendering.TestArray;
 
 public class RenderArray {
 
@@ -28,23 +31,49 @@ public class RenderArray {
                     case TestArray.GROUND:
                         handleGround(tArray, j, i);
                         break;
+                    case TestArray.PIPE:
+                        handlePipe(tArray, j, i);
+                        break;
                 }
             }
         }
     }
 
-    public int checkNeighbors(TestArray tArray, int x, int y){
+    public void handlePipe(TestArray tArray, int x, int y){
+        int ch = checkNeighbors(tArray, x, y, TestArray.PIPE);
+        int adj = ch & 0xf;
+
+        switch(adj){
+            case 0xa:
+                this.setVal(x, y, 14);
+                break;
+            case 0x9:
+                this.setVal(x, y, 15);
+                break;
+            case 0xe:
+                this.setVal(x, y, 30);
+                break;
+            case 0xd:
+                this.setVal(x, y, 31);
+                break;
+            default:
+                this.setVal(x, y, 30);
+                break;
+        }
+    }
+
+    public int checkNeighbors(TestArray tArray, int x, int y, int id){
 
         int result = 0x0;
 
-        if(tArray.getVal(x-1, y) == TestArray.GROUND){ result |= 0x1; }
-        if(tArray.getVal(x+1, y) == TestArray.GROUND){ result |= 0x2; }
-        if(tArray.getVal(x, y-1) == TestArray.GROUND){ result |= 0x4; }
-        if(tArray.getVal(x, y+1) == TestArray.GROUND){ result |= 0x8; }
-        if(tArray.getVal(x-1, y-1) != TestArray.GROUND){ result |= 0x10; }
-        if(tArray.getVal(x+1, y-1) != TestArray.GROUND){ result |= 0x20; }
-        if(tArray.getVal(x-1, y+1) != TestArray.GROUND){ result |= 0x40; }
-        if(tArray.getVal(x+1, y+1) != TestArray.GROUND){ result |= 0x80; }
+        if(tArray.getVal(x-1, y) == id){ result |= 0x1; }
+        if(tArray.getVal(x+1, y) == id){ result |= 0x2; }
+        if(tArray.getVal(x, y-1) == id){ result |= 0x4; }
+        if(tArray.getVal(x, y+1) == id){ result |= 0x8; }
+        if(tArray.getVal(x-1, y-1) != id){ result |= 0x10; }
+        if(tArray.getVal(x+1, y-1) != id){ result |= 0x20; }
+        if(tArray.getVal(x-1, y+1) != id){ result |= 0x40; }
+        if(tArray.getVal(x+1, y+1) != id){ result |= 0x80; }
 
 
         return result;
@@ -55,7 +84,7 @@ public class RenderArray {
 
     public void handleGround(TestArray tArray, int x, int y){
 
-        int ch = checkNeighbors(tArray, x, y);
+        int ch = checkNeighbors(tArray, x, y, TestArray.GROUND);
         int adj = ch & 0xf;
         int crn = (ch & 0xf0) >> 4;
 

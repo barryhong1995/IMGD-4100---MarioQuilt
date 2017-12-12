@@ -1,4 +1,7 @@
-import java.awt.image.BufferedImage;
+import LSystem.Coordinate;
+import Rendering.ImageOverlay;
+import Rendering.RenderArray;
+import Rendering.TestArray;
 
 public class Main {
 
@@ -8,7 +11,7 @@ public class Main {
         RenderArray r = new RenderArray();
         ImageOverlay overlay = new ImageOverlay(null);
 
-
+        t.buildGround();
         r.buildRenderArray(t);
 
         t.printArray();
