@@ -22,22 +22,12 @@ public class Sprite {
 	public static final int ID_ROCK = 6;
 	
 	////WALKABLE BLOCKS
-	//DIRT
-	public static final int ID_DIRT_TL = 9;
-	public static final int ID_DIRT_TM = 10;
-	public static final int ID_DIRT_TR = 11;
-	public static final int ID_DIRT_ML = 25;
-	public static final int ID_DIRT_MM = 26;
-	public static final int ID_DIRT_MR = 27;
-	public static final int ID_DIRT_BL = 41;
-	public static final int ID_DIRT_BM = 42;
-	public static final int ID_DIRT_BR = 43;
 	//Grass
 	public static final int ID_GRASS_TL = 57;
 	public static final int ID_GRASS_TM = 58;
 	public static final int ID_GRASS_TR = 59;
 	public static final int ID_GRASS_ML = 73;
-	public static final int ID_GRASS_MM = 74;
+	public static final int ID_GRASS_MM = 74; //just plain dirt
 	public static final int ID_GRASS_MR = 75;
 	public static final int ID_GRASS_BL = 89;
 	public static final int ID_GRASS_BM = 90;
