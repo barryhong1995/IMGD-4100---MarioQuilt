@@ -1,5 +1,5 @@
 package LSystem;
 
 public interface IElement {
-    public void performAction(LSystem l);
+    public Grammar performAction(Grammar l);
 }

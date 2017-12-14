@@ -2,6 +2,7 @@ import LSystem.Coordinate;
 import Rendering.ImageOverlay;
 import Rendering.RenderArray;
 import Rendering.TestArray;
+import LSystem.Grammar;
 
 public class Main {
 
@@ -10,8 +11,11 @@ public class Main {
         TestArray t = new TestArray();
         RenderArray r = new RenderArray();
         ImageOverlay overlay = new ImageOverlay(null);
+        Grammar l = new Grammar(t);
+
 
         t.buildGround();
+        l.runLsystem(3);
         r.buildRenderArray(t);
 
         t.printArray();

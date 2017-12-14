@@ -21,10 +21,7 @@ public class TestArray {
 
     public TestArray(){
         this.tArray = new int[LEVEL_HEIGHT + 1][LEVEL_WIDTH + 1];
-        tArray[2][2] = PLATFORM;
-        tArray[2][3] = PLATFORM;
-        tArray[2][4] = PLATFORM;
-        tArray[2][5] = PLATFORM;
+
 //
 //        for(int i = 5; i < LEVEL_HEIGHT -1; i++){
 //            for(int j = 4; j < 8; j++){
