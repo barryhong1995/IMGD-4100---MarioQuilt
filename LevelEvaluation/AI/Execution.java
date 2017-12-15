@@ -9,7 +9,10 @@ public class Execution {
 		AIData ai = new AIData();
 		try {
 			// Read level data from file
-			BufferedReader fileInput = new BufferedReader(new FileReader("./LevelAIManipulator/TestLevel/testLevel_Simple.txt"));
+			BufferedReader fileInput = new BufferedReader(new FileReader("./LevelEvaluation/TestLevel/testLevel_Simple.txt"));
+			// Print out result from console
+			PrintStream out = new PrintStream(new FileOutputStream("level_evaluation.txt"));
+			System.setOut(out);
 			String s;
 			int maxWidth = 0;
 			int height = 0;
