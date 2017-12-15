@@ -1,0 +1,63 @@
+Block Locations in the picture:
+
+Special:
+----------------------------------------------------
+AIR - 0,0
+FACEBLOCK_YELLOW - 1,0
+QUESTION_BLOCK - 2,0
+CLOUD - 3,0
+MUSICAL_NOTE - 4,0
+FACEBLOCK_BROWN - 5,0
+ROCK - 6,0
+COIN - 7,0
+
+Standing Blocks:
+----------------------------------------------------
+DARK_DIRT (topleft) - 9,0
+DARK_DIRT (topmiddle) - 10,0
+DARK_DIRT (topright) - 11,0
+DARK_DIRT (middleleft) - 9,1
+DARK_DIRT (middle) - 10,1
+DARK_DIRT (middleright) - 11,1
+DARK_DIRT (botleft) - 9,2
+DARK_DIRT (botmiddle) - 10,2
+DARK_DIRT (botright) - 11,2
+
+NORMAL_GRASS (topleft) - 9,3
+NORMAL_GRASS (topmiddle) - 10,3
+NORMAL_GRASS (topright) - 11,3
+NORMAL_GRASS (middleleft) - 9,4
+NORMAL_GRASS (middle) - 10,4
+NORMAL_GRASS (middleright) - 11,4
+NORMAL_GRASS (botleft) - 9,5
+NORMAL_GRASS (botmiddle) - 10,5
+NORMAL_GRASS (botright) - 11,5
+
+Pipes:
+----------------------------------------------------
+HORIZ_PIPE (opening:topleft) - 6,1
+HORIZ_PIPE (opening:botleft) - 6,2
+HORIZ_PIPE (topmiddle) - 7,1
+HORIZ_PIPE (botmiddle) - 7,2
+HORIZ_PIPE (opening:topright) - 8,1
+HORIZ_PIPE (opening:botright) - 8,2
+
+VERITCAL_PIPE (opening:topleft) - 4,1
+VERTICAL_PIPE (opening:topright) - 5,1
+VERTICAL_PIPE (leftmiddle) - 4,2
+VERTICAL_PIPE (rightmiddle) - 5,2
+VERTICAL_PIPE (opening:botleft) - 4,3
+VERTICAL_PIPE (opening:botright) - 5,3
+
+
+
+
+
+
+
+
+
+
+
+
+
