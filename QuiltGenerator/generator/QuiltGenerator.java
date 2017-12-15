@@ -18,9 +18,12 @@ public class QuiltGenerator {
 	private final static int HALF_BLOCKSIZE = BLOCKSIZE / 2;
 	private final static int QUARTER_BLOCKSIZE = BLOCKSIZE / 4;
 	private final static int EIGTH_BLOCKSIZE = BLOCKSIZE / 8;
+	private final static int THREE_BLOCKSIZE = HALF_BLOCKSIZE + QUARTER_BLOCKSIZE;
 
 	private int[][] level;
 	private int world = 0;
+	//How to draw the sky. "Diamonds", "Dirt", "Rectangles", or "NONE"
+	private String skyDraw = "Rectangles";
 	private ArrayList <Polygon> skyPolygons;
 	private BufferedImage output_image;
 	private Graphics2D g2D;
@@ -89,7 +92,12 @@ public class QuiltGenerator {
 		return level;
 	}
 
-	
+	/**
+	 * Draw a dirt block at XY
+	 * @param X The x coordinate to draw it at
+	 * @param Y The y coordinate to draw it at
+	 * @param ADJ The adjacent blocks of the same ID
+	 */
 	private void drawDirt(int X, int Y, int ADJ){
 		int DRAW_X = X * BLOCKSIZE, DRAW_Y = Y * BLOCKSIZE;
 		int MID_X = DRAW_X + HALF_BLOCKSIZE, MID_Y = DRAW_Y + HALF_BLOCKSIZE;
@@ -104,10 +112,9 @@ public class QuiltGenerator {
 		ArrayList <Polygon> dirt_dark = new ArrayList <Polygon>();
 		
 		
-		
 		//Bottom Left Dark Diamond (only if left and downleft)
 		if (left && downleft){
-			int[] xBotLeftDarkDiamond = {(DRAW_X - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE),(DRAW_X - QUARTER_BLOCKSIZE),QUARTER_X,(DRAW_X - QUARTER_BLOCKSIZE)};
+			int[] xBotLeftDarkDiamond = {(DRAW_X - THREE_BLOCKSIZE),(DRAW_X - QUARTER_BLOCKSIZE),QUARTER_X,(DRAW_X - QUARTER_BLOCKSIZE)};
 			int[] yBotLeftDarkDiamond = {THREE_Y,QUARTER_Y,THREE_Y,(END_Y + QUARTER_BLOCKSIZE)};
 			dirt_dark.add(new Polygon(xBotLeftDarkDiamond,yBotLeftDarkDiamond,4));
 		} else {
@@ -125,7 +132,7 @@ public class QuiltGenerator {
 		//Top Right Dark Diamond (only if up and upright)
 		if (up && upright){
 			int[] xTopRightDarkDiamond = {QUARTER_X,THREE_X,(END_X + QUARTER_BLOCKSIZE),THREE_X};
-			int[] yTopRightDarkDiamond = {(DRAW_Y - QUARTER_BLOCKSIZE),(DRAW_Y - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE),(DRAW_Y - QUARTER_BLOCKSIZE),QUARTER_Y};
+			int[] yTopRightDarkDiamond = {(DRAW_Y - QUARTER_BLOCKSIZE),(DRAW_Y - THREE_BLOCKSIZE),(DRAW_Y - QUARTER_BLOCKSIZE),QUARTER_Y};
 			dirt_dark.add(new Polygon(xTopRightDarkDiamond,yTopRightDarkDiamond,4));
 		} else {
 			//Top Right Dark Triangle (into none)
@@ -141,7 +148,7 @@ public class QuiltGenerator {
 		}
 		//Top Right Light Diamond (only if right and upright)
 		if (right && upright){
-			int[] xTopRightLightDiamond = {THREE_X,(END_X + QUARTER_BLOCKSIZE),(END_X + HALF_BLOCKSIZE + QUARTER_BLOCKSIZE),(END_X + QUARTER_BLOCKSIZE)};
+			int[] xTopRightLightDiamond = {THREE_X,(END_X + QUARTER_BLOCKSIZE),(END_X + THREE_BLOCKSIZE),(END_X + QUARTER_BLOCKSIZE)};
 			int[] yTopRightLightDiamond = {QUARTER_Y,(DRAW_Y - QUARTER_BLOCKSIZE),QUARTER_Y,THREE_Y};
 			dirt_light.add(new Polygon(xTopRightLightDiamond,yTopRightLightDiamond,4));
 		} else {
@@ -159,7 +166,7 @@ public class QuiltGenerator {
 		//Bottom Left Light Diamond (only if down and downleft)
 		if (down && downleft){
 			int[] xBotLeftLightDiamond = {(DRAW_X - QUARTER_BLOCKSIZE),QUARTER_X,THREE_X,QUARTER_X};
-			int[] yBotLeftLightDiamond = {(END_Y + QUARTER_BLOCKSIZE),THREE_Y,(END_Y + QUARTER_BLOCKSIZE),(END_Y + HALF_BLOCKSIZE + QUARTER_BLOCKSIZE)};
+			int[] yBotLeftLightDiamond = {(END_Y + QUARTER_BLOCKSIZE),THREE_Y,(END_Y + QUARTER_BLOCKSIZE),(END_Y + THREE_BLOCKSIZE)};
 			dirt_light.add(new Polygon(xBotLeftLightDiamond,yBotLeftLightDiamond,4));
 		} else {
 			//Bottom Right Light Triangle (into none)
@@ -224,11 +231,283 @@ public class QuiltGenerator {
 			}
 		}
 		
+		//////////////////Draw Into Grass Blocks
+		int UPLEFT = -2, UP = -2, UPRIGHT = -2;
+		int LEFT = -2, RIGHT = -2;
+		int DOWNLEFT = -2, DOWN = -2;
+		boolean into_up = false, into_upright = false, into_left = false, into_right = false, into_down = false, into_downleft = false;
+		if (X > 0) {
+			LEFT = level[Y][X - 1];
+			if (Y > 0) UPLEFT = level[Y - 1][X - 1];
+			if (Y < level.length - 1) DOWNLEFT = level[Y + 1][X - 1];
+		}
+		if (X < level[0].length - 1) {
+			RIGHT = level[Y][X + 1];
+			if (Y > 0) UPRIGHT = level[Y - 1][X + 1];
+		}
+		if (Y > 0) UP = level[Y - 1][X];
+		if (Y < level.length - 1) DOWN = level[Y + 1][X];
+		//Up can be TL, TM, TR, ML, or MR
+		into_up = (UP == Sprite.ID_GRASS_TL || UP == Sprite.ID_GRASS_TM ||
+				UP == Sprite.ID_GRASS_TR || UP == Sprite.ID_GRASS_ML ||
+				UP == Sprite.ID_GRASS_MR);
+		//If (Up is TM, TL, or ML) or (Right is BM, BR, or MR): Upright can be TM, TR, or MR
+		//Else: Upright is inaccessible
+		into_upright = (UPRIGHT == Sprite.ID_GRASS_TR || UPRIGHT == Sprite.ID_GRASS_TM ||
+				UPRIGHT == Sprite.ID_GRASS_MR);
+		//Left can be TL, TM, ML, BL, or BM
+		into_left = (LEFT == Sprite.ID_GRASS_TL || LEFT == Sprite.ID_GRASS_TM ||
+				LEFT == Sprite.ID_GRASS_ML || LEFT == Sprite.ID_GRASS_BL ||
+				LEFT == Sprite.ID_GRASS_BM);
+		//If (Left is TR, TM, or ML) or (Down is BM, BR, or MR): Downleft can be ML, BL, or BM
+		//Else: Downleft is inaccessible
+		into_downleft = (DOWNLEFT == Sprite.ID_GRASS_ML ||  DOWNLEFT == Sprite.ID_GRASS_BL ||
+				DOWNLEFT == Sprite.ID_GRASS_BM);
+		//Down can be ML, MR, BL, BM, or BR
+		into_down = (DOWN == Sprite.ID_GRASS_ML || DOWN == Sprite.ID_GRASS_MR ||
+				DOWN == Sprite.ID_GRASS_BL || DOWN == Sprite.ID_GRASS_BR ||
+				DOWN == Sprite.ID_GRASS_BM);
+		//Right can be TM, TR, MR, BM, or BR
+		into_right = (RIGHT == Sprite.ID_GRASS_TM || RIGHT == Sprite.ID_GRASS_TR ||
+				RIGHT == Sprite.ID_GRASS_MR || RIGHT == Sprite.ID_GRASS_BM ||
+				RIGHT == Sprite.ID_GRASS_BR);
 		
-		
-		int[] xTemp = {DRAW_X, DRAW_X, END_X, END_X};
-		int[] yTemp = {DRAW_Y, END_Y, END_Y, DRAW_Y};
-		//drawShape(new Polygon(xTemp, yTemp, 4), Color.YELLOW, Sprite.COLOR_BORDER);
+		////Topleft Light Dirt
+		if (into_up && UP != Sprite.ID_GRASS_TL && UP != Sprite.ID_GRASS_ML){ //has to extend into up
+			if (into_left && LEFT != Sprite.ID_GRASS_TL && LEFT != Sprite.ID_GRASS_TM){ //has to extend into left
+				if (LEFT == Sprite.ID_GRASS_ML){ //deeper
+					if (UP == Sprite.ID_GRASS_TM){ //deeper
+						int[] xTLLD = {(DRAW_X - THREE_BLOCKSIZE),(DRAW_X - HALF_BLOCKSIZE),END_X,THREE_X};
+						int[] yTLLD = {THREE_Y,END_Y,(DRAW_Y - HALF_BLOCKSIZE),(DRAW_Y - THREE_BLOCKSIZE)};
+						dirt_light.add(new Polygon(xTLLD,yTLLD,4));
+					} else { //not as deep
+						int[] xTLLD = {(DRAW_X - THREE_BLOCKSIZE),(DRAW_X - HALF_BLOCKSIZE),THREE_X,MID_X};
+						int[] yTLLD = {THREE_Y,END_Y,(DRAW_Y - QUARTER_BLOCKSIZE),(DRAW_Y - HALF_BLOCKSIZE)};
+						dirt_light.add(new Polygon(xTLLD,yTLLD,4));
+					}
+				} else { //not as deep
+					if (UP == Sprite.ID_GRASS_TM){ //deeper
+						int[] xTLLD = {(DRAW_X - HALF_BLOCKSIZE),(DRAW_X - QUARTER_BLOCKSIZE),END_X,THREE_X};
+						int[] yTLLD = {MID_Y,THREE_Y,(DRAW_Y - HALF_BLOCKSIZE),(DRAW_Y - THREE_BLOCKSIZE)};
+						dirt_light.add(new Polygon(xTLLD,yTLLD,4));
+					} else { //not as deep
+						int[] xTLLD = {(DRAW_X - HALF_BLOCKSIZE),(DRAW_X - QUARTER_BLOCKSIZE),THREE_X,MID_X};
+						int[] yTLLD = {MID_Y,THREE_Y,(DRAW_Y - QUARTER_BLOCKSIZE),(DRAW_Y - HALF_BLOCKSIZE)};
+						dirt_light.add(new Polygon(xTLLD,yTLLD,4));
+					}
+				}
+			} else if (left){ //into left
+				if (UP == Sprite.ID_GRASS_TM){ //deeper
+					int[] xTLLD = {(DRAW_X - QUARTER_BLOCKSIZE),DRAW_X,END_X,THREE_X};
+					int[] yTLLD = {QUARTER_Y,MID_Y,(DRAW_Y - HALF_BLOCKSIZE),(DRAW_Y - THREE_BLOCKSIZE)};
+					dirt_light.add(new Polygon(xTLLD,yTLLD,4));
+				} else { //not as deep
+					int[] xTLLD = {(DRAW_X - QUARTER_BLOCKSIZE),DRAW_X,THREE_X,MID_X};
+					int[] yTLLD = {QUARTER_Y,MID_Y,(DRAW_Y - QUARTER_BLOCKSIZE),(DRAW_Y - HALF_BLOCKSIZE)};
+					dirt_light.add(new Polygon(xTLLD,yTLLD,4));
+				}
+			} else { //into none (left)
+				if (UP == Sprite.ID_GRASS_TM){ //deeper
+					int[] xTLLD = {DRAW_X,DRAW_X,END_X,THREE_X};
+					int[] yTLLD = {DRAW_Y,MID_Y,(DRAW_Y - HALF_BLOCKSIZE),(DRAW_Y - THREE_BLOCKSIZE)};
+					dirt_light.add(new Polygon(xTLLD,yTLLD,4));
+				} else { //not as deep
+					int[] xTLLD = {DRAW_X,DRAW_X,THREE_X,MID_X};
+					int[] yTLLD = {DRAW_Y,MID_Y,(DRAW_Y - QUARTER_BLOCKSIZE),(DRAW_Y - HALF_BLOCKSIZE)};
+					dirt_light.add(new Polygon(xTLLD,yTLLD,4));
+				}
+			}	
+		} else if (up){ //into up
+			if (into_left && LEFT != Sprite.ID_GRASS_TL && LEFT != Sprite.ID_GRASS_TM){ //has to extend into left
+				if (LEFT == Sprite.ID_GRASS_ML){ //deeper
+					int[] xTLLD = {(DRAW_X - THREE_BLOCKSIZE),(DRAW_X - HALF_BLOCKSIZE),MID_X,QUARTER_X};
+					int[] yTLLD = {THREE_Y,END_Y,DRAW_Y,(DRAW_Y - QUARTER_BLOCKSIZE)};
+					dirt_light.add(new Polygon(xTLLD,yTLLD,4));
+				} else { //not as deep
+					int[] xTLLD = {(DRAW_X - HALF_BLOCKSIZE),(DRAW_X - QUARTER_BLOCKSIZE),MID_X,QUARTER_X};
+					int[] yTLLD = {MID_Y,THREE_Y,DRAW_Y,(DRAW_Y - QUARTER_BLOCKSIZE)};
+					dirt_light.add(new Polygon(xTLLD,yTLLD,4));
+				}
+			}
+		} else { //into none (up)
+			if (into_left && LEFT != Sprite.ID_GRASS_TL && LEFT != Sprite.ID_GRASS_TM){ //has to extend into left
+				if (LEFT == Sprite.ID_GRASS_ML){ //deeper
+					int[] xTLLD = {(DRAW_X - THREE_BLOCKSIZE),(DRAW_X - HALF_BLOCKSIZE),MID_X,DRAW_X};
+					int[] yTLLD = {THREE_Y,END_Y,DRAW_Y,DRAW_Y};
+					dirt_light.add(new Polygon(xTLLD,yTLLD,4));
+				} else { //not as deep
+					int[] xTLLD = {(DRAW_X - HALF_BLOCKSIZE),(DRAW_X - QUARTER_BLOCKSIZE),MID_X,DRAW_X};
+					int[] yTLLD = {MID_Y,THREE_Y,DRAW_Y,DRAW_Y};
+					dirt_light.add(new Polygon(xTLLD,yTLLD,4));
+				}
+			}
+		}
+		////Bottom Right Dark Dirt
+		if (into_right && RIGHT != Sprite.ID_GRASS_BR && RIGHT != Sprite.ID_GRASS_BM){ //has to be extended into right
+			if (into_down && DOWN != Sprite.ID_GRASS_BR && DOWN != Sprite.ID_GRASS_MR){ //has to extend into down
+				if (DOWN == Sprite.ID_GRASS_BM){ //deeper
+					if (RIGHT == Sprite.ID_GRASS_MR){ //deeper
+						int[] xBRDD = {DRAW_X,QUARTER_X,(END_X + THREE_BLOCKSIZE),(END_X + HALF_BLOCKSIZE)};
+						int[] yBRDD = {(END_Y + HALF_BLOCKSIZE),(END_Y + THREE_BLOCKSIZE),QUARTER_Y,DRAW_Y};
+						dirt_dark.add(new Polygon(xBRDD,yBRDD,4));
+					} else { //not as deep
+						int[] xBRDD = {DRAW_X,QUARTER_X,(END_X + HALF_BLOCKSIZE),(END_X + QUARTER_BLOCKSIZE)};
+						int[] yBRDD = {(END_Y + HALF_BLOCKSIZE),(END_Y + THREE_BLOCKSIZE),MID_Y,QUARTER_Y};
+						dirt_dark.add(new Polygon(xBRDD,yBRDD,4));
+					}
+				} else { //not as deep
+					if (RIGHT == Sprite.ID_GRASS_MR){ //deeper
+						int[] xBRDD = {QUARTER_X,MID_X,(END_X + THREE_BLOCKSIZE),(END_X + HALF_BLOCKSIZE)};
+						int[] yBRDD = {(END_Y + QUARTER_BLOCKSIZE),(END_Y + HALF_BLOCKSIZE),QUARTER_Y,DRAW_Y};
+						dirt_dark.add(new Polygon(xBRDD,yBRDD,4));
+					} else { //not as deep
+						int[] xBRDD = {QUARTER_X,MID_X,(END_X + HALF_BLOCKSIZE),(END_X + QUARTER_BLOCKSIZE)};
+						int[] yBRDD = {(END_Y + QUARTER_BLOCKSIZE),(END_Y + HALF_BLOCKSIZE),MID_Y,QUARTER_Y};
+						dirt_dark.add(new Polygon(xBRDD,yBRDD,4));
+					}
+				}
+			} else if (down) { //into down
+				if (RIGHT == Sprite.ID_GRASS_MR){ //deeper
+					int[] xBRDD = {MID_X,THREE_X,(END_X + THREE_BLOCKSIZE),(END_X + HALF_BLOCKSIZE)};
+					int[] yBRDD = {END_Y,(END_Y + QUARTER_BLOCKSIZE),QUARTER_Y,DRAW_Y};
+					dirt_dark.add(new Polygon(xBRDD,yBRDD,4));
+				} else { //not as deep
+					int[] xBRDD = {MID_X,THREE_X,(END_X + HALF_BLOCKSIZE),(END_X + QUARTER_BLOCKSIZE)};
+					int[] yBRDD = {END_Y,(END_Y + QUARTER_BLOCKSIZE),MID_Y,QUARTER_Y};
+					dirt_dark.add(new Polygon(xBRDD,yBRDD,4));
+				}
+			} else { //into none (down)
+				if (RIGHT == Sprite.ID_GRASS_MR){ //deeper
+					int[] xBRDD = {MID_X,END_X,(END_X + THREE_BLOCKSIZE),(END_X + HALF_BLOCKSIZE)};
+					int[] yBRDD = {END_Y,END_Y,QUARTER_Y,DRAW_Y};
+					dirt_dark.add(new Polygon(xBRDD,yBRDD,4));
+				} else { //not as deep
+					int[] xBRDD = {MID_X,END_X,(END_X + HALF_BLOCKSIZE),(END_X + QUARTER_BLOCKSIZE)};
+					int[] yBRDD = {END_Y,END_Y,MID_Y,QUARTER_Y};
+					dirt_dark.add(new Polygon(xBRDD,yBRDD,4));
+				}
+			}
+		} else if (right){ //into right
+			if (into_down && DOWN != Sprite.ID_GRASS_BR && DOWN != Sprite.ID_GRASS_MR){ //has to extend into down
+				if (DOWN == Sprite.ID_GRASS_BM){ //deeper
+					int[] xBRDD = {DRAW_X,QUARTER_X,(END_X + QUARTER_BLOCKSIZE),END_X};
+					int[] yBRDD = {(END_Y + HALF_BLOCKSIZE),(END_Y + THREE_BLOCKSIZE),THREE_Y,MID_Y};
+					dirt_dark.add(new Polygon(xBRDD,yBRDD,4));
+				} else { //not as deep
+					int[] xBRDD = {QUARTER_X,MID_X,(END_X + QUARTER_BLOCKSIZE),END_X};
+					int[] yBRDD = {(END_Y + QUARTER_BLOCKSIZE),(END_Y + HALF_BLOCKSIZE),THREE_Y,MID_Y};
+					dirt_dark.add(new Polygon(xBRDD,yBRDD,4));
+				}
+			}
+		} else { //into none (right)
+			if (into_down && DOWN != Sprite.ID_GRASS_BR && DOWN != Sprite.ID_GRASS_MR){ //has to extend into down
+				if (DOWN == Sprite.ID_GRASS_BM){ //deeper
+					int[] xBRDD = {DRAW_X,QUARTER_X,END_X,END_X};
+					int[] yBRDD = {(END_Y + HALF_BLOCKSIZE),(END_Y + THREE_BLOCKSIZE),END_Y,MID_Y};
+					dirt_dark.add(new Polygon(xBRDD,yBRDD,4));
+				} else { //not as deep
+					int[] xBRDD = {QUARTER_X,MID_X,END_X,END_X};
+					int[] yBRDD = {(END_Y + QUARTER_BLOCKSIZE),(END_Y + HALF_BLOCKSIZE),END_Y,MID_Y};
+					dirt_dark.add(new Polygon(xBRDD,yBRDD,4));
+				}
+			}
+		}
+		////Middle Left Dark Dirt
+		if (left || (into_left && LEFT != Sprite.ID_GRASS_BL && LEFT != Sprite.ID_GRASS_BM)){ //extends into left
+			if (into_downleft){ //extends into downleft
+				if (DOWNLEFT == Sprite.ID_GRASS_BM){ //deeper
+					int[] xMLDD = {(DRAW_X - BLOCKSIZE),(DRAW_X - THREE_BLOCKSIZE),QUARTER_X,DRAW_X};
+					int[] yMLDD = {(END_Y + HALF_BLOCKSIZE),(END_Y + THREE_BLOCKSIZE),THREE_Y,MID_Y};
+					dirt_dark.add(new Polygon(xMLDD,yMLDD,4));
+				} else { //not as deep
+					int[] xMLDD = {(DRAW_X - THREE_BLOCKSIZE),(DRAW_X - HALF_BLOCKSIZE),QUARTER_X,DRAW_X};
+					int[] yMLDD = {(END_Y + QUARTER_BLOCKSIZE),(END_Y + HALF_BLOCKSIZE),THREE_Y,MID_Y};
+					dirt_dark.add(new Polygon(xMLDD,yMLDD,4));
+				}
+			} else if (downleft){ //into downleft
+				//int[] xMLDD = {(DRAW_X - HALF_BLOCKSIZE),(DRAW_X - QUARTER_BLOCKSIZE),QUARTER_X,DRAW_X};
+				//int[] yMLDD = {END_Y,(END_Y + QUARTER_BLOCKSIZE),THREE_Y,MID_Y};
+				//dirt_dark.add(new Polygon(xMLDD,yMLDD,4));
+			} else { //only into left
+				int[] xMLDD = {(DRAW_X - HALF_BLOCKSIZE),DRAW_X,QUARTER_X,DRAW_X};
+				int[] yMLDD = {END_Y,END_Y,THREE_Y,MID_Y};
+				dirt_dark.add(new Polygon(xMLDD,yMLDD,4));
+			}
+		}
+		////Middle Right Dark Dirt
+		if (up || (into_up && UP != Sprite.ID_GRASS_TR && UP != Sprite.ID_GRASS_MR)){ //extends into up
+			if (into_upright){ //extends into upright
+				if (UPRIGHT == Sprite.ID_GRASS_MR){ //deeper
+					int[] xMRDD = {MID_X,THREE_X,(END_X + THREE_BLOCKSIZE),(END_X + HALF_BLOCKSIZE)};
+					int[] yMRDD = {DRAW_Y,QUARTER_Y,(DRAW_Y - THREE_BLOCKSIZE),(DRAW_Y - BLOCKSIZE)};
+					dirt_dark.add(new Polygon(xMRDD,yMRDD,4));
+				} else {
+					int[] xMRDD = {MID_X,THREE_X,(END_X + HALF_BLOCKSIZE),(END_X + QUARTER_BLOCKSIZE)};
+					int[] yMRDD = {DRAW_Y,QUARTER_Y,(DRAW_Y - HALF_BLOCKSIZE),(DRAW_Y - THREE_BLOCKSIZE)};
+					dirt_dark.add(new Polygon(xMRDD,yMRDD,4));
+				}
+			} else if (upright){ //into upright
+				//int[] xMRDD = {MID_X,THREE_X,(END_X + QUARTER_BLOCKSIZE),END_X};
+				//int[] yMRDD = {DRAW_Y,QUARTER_Y,(DRAW_Y - QUARTER_BLOCKSIZE),(DRAW_Y - HALF_BLOCKSIZE)};
+				//dirt_dark.add(new Polygon(xMRDD,yMRDD,4));
+			} else { //only into up
+				int[] xMRDD = {MID_X,THREE_X,END_X,END_X};
+				int[] yMRDD = {DRAW_Y,QUARTER_Y,DRAW_Y,(DRAW_Y - HALF_BLOCKSIZE)};
+				dirt_dark.add(new Polygon(xMRDD,yMRDD,4));
+			}
+		}
+		////Bottom Left Light Dirt
+		if (down || (into_down && DOWN != Sprite.ID_GRASS_BL && DOWN != Sprite.ID_GRASS_ML)){ //extends into down
+			if (into_downleft){ //extends into downleft
+				if (DOWNLEFT == Sprite.ID_GRASS_ML){ //deeper
+					int[] xBLLD = {(DRAW_X - THREE_BLOCKSIZE),(DRAW_X-HALF_BLOCKSIZE),MID_X,QUARTER_X};
+					int[] yBLLD = {(END_Y + THREE_BLOCKSIZE),(END_Y + BLOCKSIZE),END_Y,THREE_Y};
+					dirt_light.add(new Polygon(xBLLD,yBLLD,4));
+				} else { //not as deep
+					int[] xBLLD = {(DRAW_X - HALF_BLOCKSIZE),(DRAW_X-QUARTER_BLOCKSIZE),MID_X,QUARTER_X};
+					int[] yBLLD = {(END_Y + HALF_BLOCKSIZE),(END_Y + THREE_BLOCKSIZE),END_Y,THREE_Y};
+					dirt_light.add(new Polygon(xBLLD,yBLLD,4));
+				}
+			} else if (downleft){ //into downleft
+				int[] xBLLD = {(DRAW_X - QUARTER_BLOCKSIZE),DRAW_X,MID_X,QUARTER_X};
+				int[] yBLLD = {(END_Y + QUARTER_BLOCKSIZE),(END_Y + HALF_BLOCKSIZE),END_Y,THREE_Y};
+				dirt_light.add(new Polygon(xBLLD,yBLLD,4));
+			} else { //into only down
+				int[] xBLLD = {DRAW_X,DRAW_X,MID_X,QUARTER_X};
+				int[] yBLLD = {END_Y,(END_Y + HALF_BLOCKSIZE),END_Y,THREE_Y};
+				dirt_light.add(new Polygon(xBLLD,yBLLD,4));
+			}
+		}
+		////Bottom Right Light Dirt
+		if (right || (into_right && RIGHT != Sprite.ID_GRASS_TM && RIGHT != Sprite.ID_GRASS_TR)){ //extends into right
+			if (into_upright){ //extends into upright
+				if (UPRIGHT == Sprite.ID_GRASS_TM){ //deeper
+					int[] xBRLD = {THREE_X,END_X,(END_X + BLOCKSIZE),(END_X + THREE_BLOCKSIZE)};
+					int[] yBRLD = {QUARTER_Y,MID_Y,(DRAW_Y - HALF_BLOCKSIZE),(DRAW_Y - THREE_BLOCKSIZE)};
+					dirt_light.add(new Polygon(xBRLD,yBRLD,4));
+				} else { //not as deep
+					int[] xBRLD = {THREE_X,END_X,(END_X + THREE_BLOCKSIZE),(END_X + HALF_BLOCKSIZE)};
+					int[] yBRLD = {QUARTER_Y,MID_Y,(DRAW_Y - QUARTER_BLOCKSIZE),(DRAW_Y - HALF_BLOCKSIZE)};
+					dirt_light.add(new Polygon(xBRLD,yBRLD,4));
+				}
+			} else if (upright){ //into upright
+				int[] xBRLD = {THREE_X,END_X,(END_X + HALF_BLOCKSIZE),(END_X + QUARTER_BLOCKSIZE)};
+				int[] yBRLD = {QUARTER_Y,MID_Y,DRAW_Y,(DRAW_Y - QUARTER_BLOCKSIZE)};
+				dirt_light.add(new Polygon(xBRLD,yBRLD,4));
+			} else { //into only right
+				int[] xBRLD = {THREE_X,END_X,(END_X + HALF_BLOCKSIZE),END_X};
+				int[] yBRLD = {QUARTER_Y,MID_Y,DRAW_Y,DRAW_Y};
+				dirt_light.add(new Polygon(xBRLD,yBRLD,4));
+			}
+		}
+		////Fringe Cases
+		if (UPLEFT == Sprite.ID_GRASS_TL || UPLEFT == Sprite.ID_GRASS_TM || UPLEFT == Sprite.ID_GRASS_ML){
+			if (UP == Sprite.ID_GRASS_MM && LEFT == Sprite.ID_GRASS_MM){
+				int[] xFringe1 = {(DRAW_X - HALF_BLOCKSIZE),(DRAW_X - QUARTER_BLOCKSIZE),QUARTER_X,DRAW_X};
+				int[] yFringe1 = {DRAW_Y,QUARTER_Y,(DRAW_Y - QUARTER_BLOCKSIZE),(DRAW_Y - HALF_BLOCKSIZE)};
+				dirt_dark.add(new Polygon(xFringe1,yFringe1,4));
+			}
+		}
 		
 		
 		for (Polygon poly : dirt_light) {
@@ -236,6 +515,155 @@ public class QuiltGenerator {
 		}
 		for (Polygon poly : dirt_dark) {
 			drawShape(poly, Sprite.COLOR_DIRT_LIGHT, Sprite.COLOR_BORDER);
+		}
+	}
+	
+	/**
+	 * Draw a block like a dirt block at XY
+	 * @param X The x coordinate to draw it at
+	 * @param Y The y coordinate to draw it at
+	 * @param ADJ The adjacent blocks of the same ID
+	 * @param LIGHT The light color to draw with
+	 * @Param DARK The dark color to draw with
+	 */
+	private void drawLikeDirt(int X, int Y, int ADJ, Color LIGHT, Color DARK){
+		int DRAW_X = X * BLOCKSIZE, DRAW_Y = Y * BLOCKSIZE;
+		int MID_X = DRAW_X + HALF_BLOCKSIZE, MID_Y = DRAW_Y + HALF_BLOCKSIZE;
+		int END_X = DRAW_X + BLOCKSIZE, END_Y = DRAW_Y + BLOCKSIZE;
+		int QUARTER_X = DRAW_X + QUARTER_BLOCKSIZE, QUARTER_Y = DRAW_Y + QUARTER_BLOCKSIZE;
+		int THREE_X = END_X - QUARTER_BLOCKSIZE, THREE_Y = END_Y - QUARTER_BLOCKSIZE;
+
+		boolean left = (ADJ & ML) > 0, right = (ADJ & MR) > 0, up = (ADJ & TM) > 0,
+				 down = (ADJ & BM) > 0, upright = (ADJ & TR) > 0, downleft = (ADJ & BL) > 0;
+				
+		ArrayList <Polygon> dirt_light = new ArrayList <Polygon>();
+		ArrayList <Polygon> dirt_dark = new ArrayList <Polygon>();
+		
+		
+		//Bottom Left Dark Diamond (only if left and downleft)
+		if (left && downleft){
+			int[] xBotLeftDarkDiamond = {(DRAW_X - THREE_BLOCKSIZE),(DRAW_X - QUARTER_BLOCKSIZE),QUARTER_X,(DRAW_X - QUARTER_BLOCKSIZE)};
+			int[] yBotLeftDarkDiamond = {THREE_Y,QUARTER_Y,THREE_Y,(END_Y + QUARTER_BLOCKSIZE)};
+			dirt_dark.add(new Polygon(xBotLeftDarkDiamond,yBotLeftDarkDiamond,4));
+		} else {
+			//Bottom Left Dark Triangle (into none)
+			if (!left){
+				int[] xBotLeftDarkTriangle = {DRAW_X,QUARTER_X,DRAW_X};
+				int[] yBotLeftDarkTriangle = {MID_Y,THREE_Y,END_Y};
+				dirt_dark.add(new Polygon(xBotLeftDarkTriangle,yBotLeftDarkTriangle,3));
+			} else { //Bottom Left Dark Rhombus (into left)
+				int[] xBotLeftDarkRhombus = {(DRAW_X - HALF_BLOCKSIZE),DRAW_X,QUARTER_X,DRAW_X};
+				int[] yBotLeftDarkRhombus = {END_Y,END_Y,THREE_Y,MID_Y};
+				dirt_dark.add(new Polygon(xBotLeftDarkRhombus,yBotLeftDarkRhombus,4));
+			}
+		}
+		//Top Right Dark Diamond (only if up and upright)
+		if (up && upright){
+			int[] xTopRightDarkDiamond = {QUARTER_X,THREE_X,(END_X + QUARTER_BLOCKSIZE),THREE_X};
+			int[] yTopRightDarkDiamond = {(DRAW_Y - QUARTER_BLOCKSIZE),(DRAW_Y - THREE_BLOCKSIZE),(DRAW_Y - QUARTER_BLOCKSIZE),QUARTER_Y};
+			dirt_dark.add(new Polygon(xTopRightDarkDiamond,yTopRightDarkDiamond,4));
+		} else {
+			//Top Right Dark Triangle (into none)
+			if (!up){
+				int[] xTopRightDarkTriangle = {MID_X,THREE_X,END_X};
+				int[] yTopRightDarkTriangle = {DRAW_Y,QUARTER_Y,DRAW_Y};
+				dirt_dark.add(new Polygon(xTopRightDarkTriangle,yTopRightDarkTriangle,3));
+			} else { //Top Right Dark Rhombus (into up)
+				int[] xTopRightDarkRhombus = {MID_X,THREE_X,END_X,END_X};
+				int[] yTopRightDarkRhombus = {DRAW_Y,QUARTER_Y,DRAW_Y,(DRAW_Y - HALF_BLOCKSIZE)};
+				dirt_dark.add(new Polygon(xTopRightDarkRhombus,yTopRightDarkRhombus,4));
+			}
+		}
+		//Top Right Light Diamond (only if right and upright)
+		if (right && upright){
+			int[] xTopRightLightDiamond = {THREE_X,(END_X + QUARTER_BLOCKSIZE),(END_X + THREE_BLOCKSIZE),(END_X + QUARTER_BLOCKSIZE)};
+			int[] yTopRightLightDiamond = {QUARTER_Y,(DRAW_Y - QUARTER_BLOCKSIZE),QUARTER_Y,THREE_Y};
+			dirt_light.add(new Polygon(xTopRightLightDiamond,yTopRightLightDiamond,4));
+		} else {
+			//Middle Right Light Triangle (into none)
+			if (!right){
+				int[] xMidRightLightTriangle = {END_X,THREE_X,END_X};
+				int[] yMidRightLightTriangle = {DRAW_Y,QUARTER_Y,MID_Y};
+				dirt_light.add(new Polygon(xMidRightLightTriangle,yMidRightLightTriangle,3));
+			} else { //Middle Right Light Rhombus (into right)
+				int[] xMidRightLightRhombus = {END_X,THREE_X,END_X,(END_X + HALF_BLOCKSIZE)};
+				int[] yMidRightLightRhombus = {DRAW_Y,QUARTER_Y,MID_Y,DRAW_Y};
+				dirt_light.add(new Polygon(xMidRightLightRhombus,yMidRightLightRhombus,4));
+			}
+		}
+		//Bottom Left Light Diamond (only if down and downleft)
+		if (down && downleft){
+			int[] xBotLeftLightDiamond = {(DRAW_X - QUARTER_BLOCKSIZE),QUARTER_X,THREE_X,QUARTER_X};
+			int[] yBotLeftLightDiamond = {(END_Y + QUARTER_BLOCKSIZE),THREE_Y,(END_Y + QUARTER_BLOCKSIZE),(END_Y + THREE_BLOCKSIZE)};
+			dirt_light.add(new Polygon(xBotLeftLightDiamond,yBotLeftLightDiamond,4));
+		} else {
+			//Bottom Right Light Triangle (into none)
+			if (!down){
+				int[] xBotRightLightTriangle = {DRAW_X,QUARTER_X,MID_X};
+				int[] yBotRightLightTriangle = {END_Y,THREE_Y,END_Y};
+				dirt_light.add(new Polygon(xBotRightLightTriangle,yBotRightLightTriangle,3));
+			} else { //Bottom Left Light Rhombus (into down)
+				int[] xBotLeftLightRhombus = {DRAW_X,DRAW_X,QUARTER_X,MID_X};
+				int[] yBotLeftLightRhombus = {(END_Y + HALF_BLOCKSIZE),END_Y,THREE_Y,END_Y};
+				dirt_light.add(new Polygon(xBotLeftLightRhombus,yBotLeftLightRhombus,4));
+			}
+		}
+		//Bottom Right Dark Diamond (only if right and down)
+		if (right && down){
+			int[] xBotRightDarkDiamond = {QUARTER_X,THREE_X,(END_X + QUARTER_BLOCKSIZE),THREE_X};
+			int[] yBotRightDarkDiamond = {THREE_Y,(END_Y + QUARTER_BLOCKSIZE),THREE_Y,QUARTER_Y};
+			dirt_dark.add(new Polygon(xBotRightDarkDiamond,yBotRightDarkDiamond,4));
+		} else {
+			//Will have to be more than 1 polygon: Middle Dark Rhombus
+			int[] xMidDarkRhombus = {QUARTER_X,THREE_X,END_X,MID_X};
+			int[] yMidDarkRhombus = {THREE_Y,QUARTER_Y,MID_Y,END_Y};
+			dirt_dark.add(new Polygon(xMidDarkRhombus,yMidDarkRhombus,4));
+			//Bottom Right Dark Rhombus
+			if (right && !down){ //into right only
+				int[] xBotRightDarkRhombus = {MID_X,END_X,(END_X + QUARTER_BLOCKSIZE),END_X};
+				int[] yBotRightDarkRhombus = {END_Y,MID_Y,THREE_Y,END_Y};
+				dirt_dark.add(new Polygon(xBotRightDarkRhombus,yBotRightDarkRhombus,4));
+			} else if (!right && down){ //into down only
+				int[] xBotRightDarkRhombus = {MID_X,END_X,END_X,THREE_X};
+				int[] yBotRightDarkRhombus = {END_Y,MID_Y,END_Y,(END_Y + QUARTER_BLOCKSIZE)};
+				dirt_dark.add(new Polygon(xBotRightDarkRhombus,yBotRightDarkRhombus,4));
+			} else if (!right && !down){ //Bottom Right Dark Triangle (into none)
+				int[] xBotRightDarkTriangle = {MID_X,END_X,END_X};
+				int[] yBotRightDarkTriangle = {END_Y,MID_Y,END_Y};
+				dirt_dark.add(new Polygon(xBotRightDarkTriangle,yBotRightDarkTriangle,3));
+			}
+		}
+		//Top Left Light Diamond (only if up and left)
+		if (up && left){
+			int[] xTopLeftLightDiamond = {(DRAW_X - QUARTER_BLOCKSIZE),QUARTER_X,THREE_X,QUARTER_X};
+			int[] yTopLeftLightDiamond = {QUARTER_Y,(DRAW_Y - QUARTER_BLOCKSIZE),QUARTER_Y,THREE_Y};
+			dirt_light.add(new Polygon(xTopLeftLightDiamond,yTopLeftLightDiamond,4));
+		} else { 
+			//Will have to be more than 1 polygon: Middle Light Rhombus
+			int[] xMidLightRhombus = {DRAW_X,QUARTER_X,THREE_X,MID_X};
+			int[] yMidLightRhombus = {MID_Y,THREE_Y,QUARTER_Y,DRAW_Y};
+			dirt_light.add(new Polygon(xMidLightRhombus,yMidLightRhombus,4));
+			//Top Left Light Rhombus
+			if (up && !left){ //into up only
+				int[] xTopLeftLightRhombus = {DRAW_X,DRAW_X,MID_X,QUARTER_X};
+				int[] yTopLeftLightRhombus = {DRAW_Y,MID_Y,DRAW_Y,(DRAW_Y - QUARTER_BLOCKSIZE)};
+				dirt_light.add(new Polygon(xTopLeftLightRhombus,yTopLeftLightRhombus,4));
+			} else if (!up && left){ //into left only
+				int[] xTopLeftLightRhombus = {(DRAW_X - QUARTER_BLOCKSIZE),DRAW_X,MID_X,DRAW_X};
+				int[] yTopLeftLightRhombus = {QUARTER_Y,MID_Y,DRAW_Y,DRAW_Y};
+				dirt_light.add(new Polygon(xTopLeftLightRhombus,yTopLeftLightRhombus,4));
+			} else { //Top Left Light Triangle (into none)
+				int[] xTopLeftLightTriangle = {DRAW_X,DRAW_X,MID_X};
+				int[] yTopLeftLightTriangle = {MID_Y,DRAW_Y,DRAW_Y};
+				dirt_light.add(new Polygon(xTopLeftLightTriangle,yTopLeftLightTriangle,3));
+			}
+		}		
+		
+		for (Polygon poly : dirt_light) {
+			drawShape(poly, LIGHT, Sprite.COLOR_BORDER);
+		}
+		for (Polygon poly : dirt_dark) {
+			drawShape(poly, DARK, Sprite.COLOR_BORDER);
 		}
 	}
 	
@@ -283,7 +711,7 @@ public class QuiltGenerator {
 				if (UP == Sprite.ID_GRASS_TR || UP == Sprite.ID_GRASS_MR) into_up = true;
 				if (LEFT == Sprite.ID_GRASS_ML) into_left = true;
 				if (DOWN == Sprite.ID_GRASS_BR || DOWN == Sprite.ID_GRASS_MR) into_down = true;
-				if (DOWNLEFT == Sprite.ID_GRASS_ML || DOWNLEFT == Sprite.ID_GRASS_BL || DOWNLEFT == Sprite.ID_GRASS_BM) into_upleft = true;
+				if (DOWNLEFT == Sprite.ID_GRASS_ML || DOWNLEFT == Sprite.ID_GRASS_BL || DOWNLEFT == Sprite.ID_GRASS_BM) into_downleft = true;
 				////Shapes that happen regardless of adjacency
 				//Middle Light Grass
 				int[] x1MR = {MID_X,THREE_X,END_X,END_X};
@@ -311,8 +739,12 @@ public class QuiltGenerator {
 				}
 				//Top Dark Dirt
 				if (into_up){
-					if (into_left){ //rhombus into up and left
-						int[] x4MR = {(DRAW_X - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE),(DRAW_X - HALF_BLOCKSIZE),THREE_X,MID_X};
+					if (LEFT == Sprite.ID_GRASS_MM){ //rhombus into left-dirt and up
+						int[] x4MR = {(DRAW_X - QUARTER_BLOCKSIZE),DRAW_X,THREE_X,MID_X};
+						int[] y4MR = {QUARTER_Y,MID_Y,(DRAW_Y - QUARTER_BLOCKSIZE),(DRAW_Y - HALF_BLOCKSIZE)};
+						dirt_dark.add(new Polygon(x4MR,y4MR,4));
+					} else if (into_left){ //rhombus into up and left
+						int[] x4MR = {(DRAW_X - THREE_BLOCKSIZE),(DRAW_X - HALF_BLOCKSIZE),THREE_X,MID_X};
 						int[] y4MR = {THREE_Y,END_Y,(DRAW_Y - QUARTER_BLOCKSIZE),(DRAW_Y - HALF_BLOCKSIZE)};
 						dirt_dark.add(new Polygon(x4MR,y4MR,4));
 					} else { //rhombus into up only
@@ -321,8 +753,12 @@ public class QuiltGenerator {
 						dirt_dark.add(new Polygon(x4MR,y4MR,4));
 					}
 				} else {
-					if (into_left){ //rhombus into left only
-						int[] x4MR = {(DRAW_X - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE),(DRAW_X - HALF_BLOCKSIZE),MID_X,DRAW_X};
+					if (LEFT == Sprite.ID_GRASS_MM){ //rhombus into left dirt only
+						int[] x4MR = {DRAW_X,(DRAW_X - QUARTER_BLOCKSIZE),DRAW_X,MID_X};
+						int[] y4MR = {DRAW_Y,QUARTER_Y,MID_Y,DRAW_Y};
+						dirt_dark.add(new Polygon(x4MR,y4MR,4));
+					} else if (into_left){ //rhombus into left only
+						int[] x4MR = {(DRAW_X - THREE_BLOCKSIZE),(DRAW_X - HALF_BLOCKSIZE),MID_X,DRAW_X};
 						int[] y4MR = {THREE_Y,END_Y,DRAW_Y,DRAW_Y};
 						dirt_dark.add(new Polygon(x4MR,y4MR,4));
 					} else { //triangle into none
@@ -335,14 +771,18 @@ public class QuiltGenerator {
 				if (into_down){
 					if (into_downleft){ //rhombus into down and downleft
 						if (DOWNLEFT == Sprite.ID_GRASS_ML){
-							int[] x5MR = {(DRAW_X - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE),(DRAW_X - HALF_BLOCKSIZE),THREE_X,MID_X};
-							int[] y5MR = {(END_Y + HALF_BLOCKSIZE + QUARTER_BLOCKSIZE),(END_Y + BLOCKSIZE),THREE_Y,MID_Y};
+							int[] x5MR = {(DRAW_X - THREE_BLOCKSIZE),(DRAW_X - HALF_BLOCKSIZE),THREE_X,MID_X};
+							int[] y5MR = {(END_Y + THREE_BLOCKSIZE),(END_Y + BLOCKSIZE),THREE_Y,MID_Y};
 							dirt_dark.add(new Polygon(x5MR,y5MR,4));
 						} else { //not as deep
 							int[] x5MR = {(DRAW_X - HALF_BLOCKSIZE),(DRAW_X - QUARTER_BLOCKSIZE),THREE_X,MID_X};
-							int[] y5MR = {(END_Y + HALF_BLOCKSIZE),(END_Y + HALF_BLOCKSIZE + QUARTER_BLOCKSIZE),THREE_Y,MID_Y};
+							int[] y5MR = {(END_Y + HALF_BLOCKSIZE),(END_Y + THREE_BLOCKSIZE),THREE_Y,MID_Y};
 							dirt_dark.add(new Polygon(x5MR,y5MR,4));
 						}
+					} else if (DOWNLEFT == Sprite.ID_GRASS_MM){ //into down and dirt-downleft
+						int[] x5MR = {(DRAW_X - QUARTER_BLOCKSIZE),DRAW_X,THREE_X,MID_X};
+						int[] y5MR = {(END_Y + QUARTER_BLOCKSIZE),(END_Y + HALF_BLOCKSIZE),THREE_Y,MID_Y};
+						dirt_dark.add(new Polygon(x5MR,y5MR,4));
 					} else { //rhombus into down only
 						int[] x5MR = {DRAW_X,DRAW_X,THREE_X,MID_X};
 						int[] y5MR = {END_Y,(END_Y + HALF_BLOCKSIZE),THREE_Y,MID_Y};
@@ -354,17 +794,21 @@ public class QuiltGenerator {
 					dirt_dark.add(new Polygon(x5MR,y5MR,4));
 				}
 				//Middle Light Dirt
-				if (into_left){
+				if (into_left || LEFT == Sprite.ID_GRASS_MM){
 					if (into_downleft) { //rhombus into left and downleft
 						if (DOWNLEFT == Sprite.ID_GRASS_BM){ //deeper
-							int[] x6MR = {(DRAW_X - BLOCKSIZE),(DRAW_X - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE),THREE_X,MID_X};
-							int[] y6MR = {(END_Y + HALF_BLOCKSIZE),(END_Y + HALF_BLOCKSIZE + QUARTER_BLOCKSIZE),QUARTER_Y,DRAW_Y};
+							int[] x6MR = {(DRAW_X - BLOCKSIZE),(DRAW_X - THREE_BLOCKSIZE),THREE_X,MID_X};
+							int[] y6MR = {(END_Y + HALF_BLOCKSIZE),(END_Y + THREE_BLOCKSIZE),QUARTER_Y,DRAW_Y};
 							dirt_light.add(new Polygon(x6MR,y6MR,4));
 						} else { //not as deep
-							int[] x6MR = {(DRAW_X - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE),(DRAW_X - HALF_BLOCKSIZE),THREE_X,MID_X};
+							int[] x6MR = {(DRAW_X - THREE_BLOCKSIZE),(DRAW_X - HALF_BLOCKSIZE),THREE_X,MID_X};
 							int[] y6MR = {(END_Y + QUARTER_BLOCKSIZE),(END_Y + HALF_BLOCKSIZE),QUARTER_Y,DRAW_Y};
 							dirt_light.add(new Polygon(x6MR,y6MR,4));
 						}
+					} else if (DOWNLEFT == Sprite.ID_GRASS_MM){ //dirt
+						int[] x6MR = {(DRAW_X - HALF_BLOCKSIZE),(DRAW_X - QUARTER_BLOCKSIZE),THREE_X,MID_X};
+						int[] y6MR = {END_Y,(END_Y + QUARTER_BLOCKSIZE),QUARTER_Y,DRAW_Y};
+						dirt_light.add(new Polygon(x6MR,y6MR,4));
 					} else { //rhombus into left only
 						int[] x6MR = {(DRAW_X - HALF_BLOCKSIZE),DRAW_X,THREE_X,MID_X};
 						int[] y6MR = {END_Y,END_Y,QUARTER_Y,DRAW_Y};
@@ -411,14 +855,18 @@ public class QuiltGenerator {
 				if (into_up){
 					if (into_upright){ //rhombus into up and upright
 						if (UPRIGHT == Sprite.ID_GRASS_MR){ //deeper
-							int[] x4ML = {QUARTER_X,MID_X,(END_X + HALF_BLOCKSIZE + QUARTER_BLOCKSIZE),(END_X + HALF_BLOCKSIZE)};
-							int[] y4ML = {QUARTER_Y,MID_Y,(DRAW_Y - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE),(DRAW_Y - BLOCKSIZE)};
+							int[] x4ML = {QUARTER_X,MID_X,(END_X + THREE_BLOCKSIZE),(END_X + HALF_BLOCKSIZE)};
+							int[] y4ML = {QUARTER_Y,MID_Y,(DRAW_Y - THREE_BLOCKSIZE),(DRAW_Y - BLOCKSIZE)};
 							dirt_light.add(new Polygon(x4ML,y4ML,4));
 						} else { //not as deep
 							int[] x4ML = {QUARTER_X,MID_X,(END_X + HALF_BLOCKSIZE),(END_X + QUARTER_BLOCKSIZE)};
-							int[] y4ML = {QUARTER_Y,MID_Y,(DRAW_Y - HALF_BLOCKSIZE),(DRAW_Y - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE)};
+							int[] y4ML = {QUARTER_Y,MID_Y,(DRAW_Y - HALF_BLOCKSIZE),(DRAW_Y - THREE_BLOCKSIZE)};
 							dirt_light.add(new Polygon(x4ML,y4ML,4));
 						}
+					} else if (UPRIGHT == Sprite.ID_GRASS_MM){ //into up and dirt-upright
+						int[] x4ML = {QUARTER_X,MID_X,(END_X + QUARTER_BLOCKSIZE),END_X};
+						int[] y4ML = {QUARTER_Y,MID_Y,(DRAW_Y - QUARTER_BLOCKSIZE),(DRAW_Y - HALF_BLOCKSIZE)};
+						dirt_light.add(new Polygon(x4ML,y4ML,4));
 					} else { //rhombus into up only
 						int[] x4ML = {QUARTER_X,MID_X,END_X,END_X};
 						int[] y4ML = {QUARTER_Y,MID_Y,DRAW_Y,(DRAW_Y - HALF_BLOCKSIZE)};
@@ -431,8 +879,12 @@ public class QuiltGenerator {
 				}
 				//Bottom Light Dirt
 				if (into_down){
-					if (into_right) { //rhombus into down and right
-						int[] x5ML = {QUARTER_X,MID_X,(END_X + HALF_BLOCKSIZE + QUARTER_BLOCKSIZE),(END_X + HALF_BLOCKSIZE)};
+					if (RIGHT == Sprite.ID_GRASS_MM){ //into right dirt and down
+						int[] x5ML = {QUARTER_X,MID_X,(END_X + QUARTER_BLOCKSIZE),END_X};
+						int[] y5ML = {(END_Y + QUARTER_BLOCKSIZE),(END_Y + HALF_BLOCKSIZE),THREE_Y,MID_Y};
+						dirt_light.add(new Polygon(x5ML,y5ML,4));
+					} else if (into_right) { //rhombus into down and right
+						int[] x5ML = {QUARTER_X,MID_X,(END_X + THREE_BLOCKSIZE),(END_X + HALF_BLOCKSIZE)};
 						int[] y5ML = {(END_Y + QUARTER_BLOCKSIZE),(END_Y + HALF_BLOCKSIZE),QUARTER_Y,DRAW_Y};
 						dirt_light.add(new Polygon(x5ML,y5ML,4));
 					} else { //rhombus into down only
@@ -441,8 +893,12 @@ public class QuiltGenerator {
 						dirt_light.add(new Polygon(x5ML,y5ML,4));
 					}
 				} else {
-					if (into_right) { //rhombus into right only
-						int[] x5ML = {MID_X,END_X,(END_X + HALF_BLOCKSIZE + QUARTER_BLOCKSIZE),(END_X + HALF_BLOCKSIZE)};
+					if (RIGHT == Sprite.ID_GRASS_MM){ //into right dirt only
+						int[] x5ML = {MID_X,END_X,(END_X + QUARTER_BLOCKSIZE),END_X};
+						int[] y5ML = {END_Y,END_Y,THREE_Y,MID_Y};
+						dirt_light.add(new Polygon(x5ML,y5ML,4));
+					} else if (into_right) { //rhombus into right only
+						int[] x5ML = {MID_X,END_X,(END_X + THREE_BLOCKSIZE),(END_X + HALF_BLOCKSIZE)};
 						int[] y5ML = {END_Y,END_Y,QUARTER_Y,DRAW_Y};
 						dirt_light.add(new Polygon(x5ML,y5ML,4));
 					} else { //triangle into none
@@ -452,21 +908,27 @@ public class QuiltGenerator {
 					}
 				}
 				//Middle Dark Dirt
-				if (into_right){
+				if (into_right || RIGHT == Sprite.ID_GRASS_MM){
 					if (into_upright){ //rhombus into right and upright
 						if (UPRIGHT == Sprite.ID_GRASS_TM){ //deeper
-							int[] x6ML = {QUARTER_X,MID_X,(END_X + BLOCKSIZE),(END_X + HALF_BLOCKSIZE + QUARTER_BLOCKSIZE)};
-							int[] y6ML = {THREE_Y,END_Y,(DRAW_Y - HALF_BLOCKSIZE),(DRAW_Y - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE)};
+							int[] x6ML = {QUARTER_X,MID_X,(END_X + BLOCKSIZE),(END_X + THREE_BLOCKSIZE)};
+							int[] y6ML = {THREE_Y,END_Y,(DRAW_Y - HALF_BLOCKSIZE),(DRAW_Y - THREE_BLOCKSIZE)};
 							dirt_dark.add(new Polygon(x6ML,y6ML,4));
 						} else { //not as deep
-							int[] x6ML = {QUARTER_X,MID_X,(END_X + HALF_BLOCKSIZE + QUARTER_BLOCKSIZE),(END_X + HALF_BLOCKSIZE)};
+							int[] x6ML = {QUARTER_X,MID_X,(END_X + THREE_BLOCKSIZE),(END_X + HALF_BLOCKSIZE)};
 							int[] y6ML = {THREE_Y,END_Y,(DRAW_Y - QUARTER_BLOCKSIZE),(DRAW_Y - HALF_BLOCKSIZE)};
 							dirt_dark.add(new Polygon(x6ML,y6ML,4));
 						}
 					} else { //rhombus into right only
-						int[] x6ML = {QUARTER_X,MID_X,(END_X + HALF_BLOCKSIZE),END_X};
-						int[] y6ML = {THREE_Y,END_Y,DRAW_Y,DRAW_Y};
-						dirt_dark.add(new Polygon(x6ML,y6ML,4));
+						if (UPRIGHT == Sprite.ID_GRASS_MM){ //deeper for dirt
+							int[] x6ML = {QUARTER_X,MID_X,(END_X + HALF_BLOCKSIZE),(END_X + QUARTER_BLOCKSIZE)};
+							int[] y6ML = {THREE_Y,END_Y,DRAW_Y,(DRAW_Y - QUARTER_BLOCKSIZE)};
+							dirt_dark.add(new Polygon(x6ML,y6ML,4));
+						} else { //not as deep
+							int[] x6ML = {QUARTER_X,MID_X,(END_X + HALF_BLOCKSIZE),END_X};
+							int[] y6ML = {THREE_Y,END_Y,DRAW_Y,DRAW_Y};
+							dirt_dark.add(new Polygon(x6ML,y6ML,4));
+						}
 					}
 				} else { //rhombus into none
 					int[] x6ML = {QUARTER_X,MID_X,END_X,END_X};
@@ -509,7 +971,11 @@ public class QuiltGenerator {
 				if (into_left){
 					if (into_up){ //rhombus into left and up
 						int[] x4BM = {(DRAW_X - HALF_BLOCKSIZE),(DRAW_X - QUARTER_BLOCKSIZE),END_X, THREE_X};
-						int[] y4BM = {MID_Y,THREE_Y,(DRAW_Y - HALF_BLOCKSIZE),(DRAW_Y - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE)};
+						int[] y4BM = {MID_Y,THREE_Y,(DRAW_Y - HALF_BLOCKSIZE),(DRAW_Y - THREE_BLOCKSIZE)};
+						dirt_dark.add(new Polygon(x4BM,y4BM,4));
+					} else if (UP == Sprite.ID_GRASS_MM){ //into dirty-up and left
+						int[] x4BM = {(DRAW_X - HALF_BLOCKSIZE),(DRAW_X - QUARTER_BLOCKSIZE),MID_X, QUARTER_X};
+						int[] y4BM = {MID_Y,THREE_Y,DRAW_Y,(DRAW_Y - QUARTER_BLOCKSIZE)};
 						dirt_dark.add(new Polygon(x4BM,y4BM,4));
 					} else { //rhombus into left only
 						int[] x4BM = {(DRAW_X - HALF_BLOCKSIZE),(DRAW_X - QUARTER_BLOCKSIZE),MID_X, DRAW_X};
@@ -519,7 +985,11 @@ public class QuiltGenerator {
 				} else {
 					if (into_up){ //rhombus into up only
 						int[] x4BM = {DRAW_X,DRAW_X,END_X, THREE_X};
-						int[] y4BM = {DRAW_Y,MID_Y,(DRAW_Y - HALF_BLOCKSIZE),(DRAW_Y - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE)};
+						int[] y4BM = {DRAW_Y,MID_Y,(DRAW_Y - HALF_BLOCKSIZE),(DRAW_Y - THREE_BLOCKSIZE)};
+						dirt_dark.add(new Polygon(x4BM,y4BM,4));
+					} else if (UP == Sprite.ID_GRASS_MM){ //into dirty-up only
+						int[] x4BM = {DRAW_X,DRAW_X,MID_X,QUARTER_X};
+						int[] y4BM = {DRAW_Y,MID_Y,DRAW_Y,(DRAW_Y - QUARTER_BLOCKSIZE)};
 						dirt_dark.add(new Polygon(x4BM,y4BM,4));
 					} else { //triangle into none
 						int[] x4BM = {DRAW_X,DRAW_X,MID_X};
@@ -528,21 +998,25 @@ public class QuiltGenerator {
 					}
 				}
 				//Middle Light Dirt
-				if (into_up){
+				if (into_up || UP == Sprite.ID_GRASS_MM){
 					if (into_upright){ //rhombus into up and upright
 						if (UPRIGHT == Sprite.ID_GRASS_MR){ //deeper
-							int[] x5BM = {DRAW_X,QUARTER_X,(END_X + HALF_BLOCKSIZE + QUARTER_BLOCKSIZE),(END_X + HALF_BLOCKSIZE)};
-							int[] y5BM = {MID_Y,THREE_Y,(DRAW_Y - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE),(DRAW_Y - BLOCKSIZE)};
+							int[] x5BM = {DRAW_X,QUARTER_X,(END_X + THREE_BLOCKSIZE),(END_X + HALF_BLOCKSIZE)};
+							int[] y5BM = {MID_Y,THREE_Y,(DRAW_Y - THREE_BLOCKSIZE),(DRAW_Y - BLOCKSIZE)};
 							dirt_light.add(new Polygon(x5BM,y5BM,4));
 						} else { //not as deep
 							int[] x5BM = {DRAW_X,QUARTER_X,(END_X + HALF_BLOCKSIZE),(END_X + QUARTER_BLOCKSIZE)};
-							int[] y5BM = {MID_Y,THREE_Y,(DRAW_Y - HALF_BLOCKSIZE),(DRAW_Y - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE)};
+							int[] y5BM = {MID_Y,THREE_Y,(DRAW_Y - HALF_BLOCKSIZE),(DRAW_Y - THREE_BLOCKSIZE)};
 							dirt_light.add(new Polygon(x5BM,y5BM,4));
 						}
+					} else if (UPRIGHT == Sprite.ID_GRASS_MM){ //rhombus into up and dirt-upright
+						int[] x5BM = {DRAW_X,QUARTER_X,(END_X + QUARTER_BLOCKSIZE),END_X};
+						int[] y5BM = {MID_Y,THREE_Y,(DRAW_Y - QUARTER_BLOCKSIZE),(DRAW_Y - HALF_BLOCKSIZE)};
+						dirt_light.add(new Polygon(x5BM,y5BM,4));
 					} else { //rhombus into up only
 						int[] x5BM = {DRAW_X,QUARTER_X,END_X,END_X};
 						int[] y5BM = {MID_Y,THREE_Y,DRAW_Y,(DRAW_Y - HALF_BLOCKSIZE)};
-						skyPolygons.add(new Polygon(x5BM,y5BM,4));
+						dirt_light.add(new Polygon(x5BM,y5BM,4));
 					}
 				} else { //rhombus into none
 					int[] x5BM = {DRAW_X,QUARTER_X,END_X,MID_X};
@@ -553,11 +1027,11 @@ public class QuiltGenerator {
 				if (into_right){
 					if (into_upright){ //rhombus into right and upright
 						if (UPRIGHT == Sprite.ID_GRASS_TM){ //deeper
-							int[] x6BM = {MID_X,THREE_X,(END_X + BLOCKSIZE),(END_X + HALF_BLOCKSIZE + QUARTER_BLOCKSIZE)};
-							int[] y6BM = {MID_Y,THREE_Y,(DRAW_Y - HALF_BLOCKSIZE),(DRAW_Y - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE)};
+							int[] x6BM = {MID_X,THREE_X,(END_X + BLOCKSIZE),(END_X + THREE_BLOCKSIZE)};
+							int[] y6BM = {MID_Y,THREE_Y,(DRAW_Y - HALF_BLOCKSIZE),(DRAW_Y - THREE_BLOCKSIZE)};
 							dirt_dark.add(new Polygon(x6BM,y6BM,4));
 						} else { //not as deep
-							int[] x6BM = {MID_X,THREE_X,(END_X + HALF_BLOCKSIZE + QUARTER_BLOCKSIZE),(END_X + HALF_BLOCKSIZE)};
+							int[] x6BM = {MID_X,THREE_X,(END_X + THREE_BLOCKSIZE),(END_X + HALF_BLOCKSIZE)};
 							int[] y6BM = {MID_Y,THREE_Y,(DRAW_Y - QUARTER_BLOCKSIZE),(DRAW_Y - HALF_BLOCKSIZE)};
 							dirt_dark.add(new Polygon(x6BM,y6BM,4));
 						}
@@ -604,37 +1078,61 @@ public class QuiltGenerator {
 					grass_light.add(new Polygon(x3TM,y3TM,3));
 				}
 				//Right Light Dirt
-				if (into_down){
-					if (into_right){ //rhombus into right and down
-						int[] x4TM = {DRAW_X,QUARTER_X,(END_X + HALF_BLOCKSIZE),(END_X + QUARTER_BLOCKSIZE)};
-						int[] y4TM = {(END_Y + HALF_BLOCKSIZE),(END_Y + HALF_BLOCKSIZE + QUARTER_BLOCKSIZE),MID_Y,QUARTER_Y};
+				if (DOWN == Sprite.ID_GRASS_MM){ //Down is dirt
+					if (into_right) { //rhombus into right and down
+						int[] x4TM = {MID_X,THREE_X,(END_X + HALF_BLOCKSIZE),(END_X + QUARTER_BLOCKSIZE)};
+						int[] y4TM = {END_Y,(END_Y + QUARTER_BLOCKSIZE),MID_Y,QUARTER_Y};
 						dirt_light.add(new Polygon(x4TM,y4TM,4));
 					} else { //rhombus into down only
-						int[] x4TM = {DRAW_X,QUARTER_X,END_X,END_X};
-						int[] y4TM = {(END_Y + HALF_BLOCKSIZE),(END_Y + HALF_BLOCKSIZE + QUARTER_BLOCKSIZE),END_Y,MID_Y};
+						int[] x4TM = {MID_X,THREE_X,END_X,END_X};
+						int[] y4TM = {END_Y,(END_Y + QUARTER_BLOCKSIZE),END_Y,MID_Y};
 						dirt_light.add(new Polygon(x4TM,y4TM,4));
 					}
-				} else { //triangle into none
-					if (into_right) { //rhombus into right
-						int[] x4TM = {MID_X,END_X,(END_X + HALF_BLOCKSIZE),(END_X + QUARTER_BLOCKSIZE)};
-						int[] y4TM = {END_Y,END_Y,MID_Y,QUARTER_Y};
-						dirt_light.add(new Polygon(x4TM,y4TM,4));
+				} else {
+					if (into_down){
+						if (into_right){ //rhombus into right and down
+							int[] x4TM = {DRAW_X,QUARTER_X,(END_X + HALF_BLOCKSIZE),(END_X + QUARTER_BLOCKSIZE)};
+							int[] y4TM = {(END_Y + HALF_BLOCKSIZE),(END_Y + THREE_BLOCKSIZE),MID_Y,QUARTER_Y};
+							dirt_light.add(new Polygon(x4TM,y4TM,4));
+						} else { //rhombus into down only
+							int[] x4TM = {DRAW_X,QUARTER_X,END_X,END_X};
+							int[] y4TM = {(END_Y + HALF_BLOCKSIZE),(END_Y + THREE_BLOCKSIZE),END_Y,MID_Y};
+							dirt_light.add(new Polygon(x4TM,y4TM,4));
+						}
 					} else { //triangle into none
-						int[] x4TM = {MID_X,END_X,END_X};
-						int[] y4TM = {END_Y,END_Y,MID_Y};
-						dirt_light.add(new Polygon(x4TM,y4TM,3));
+						if (into_right) { //rhombus into right
+							int[] x4TM = {MID_X,END_X,(END_X + HALF_BLOCKSIZE),(END_X + QUARTER_BLOCKSIZE)};
+							int[] y4TM = {END_Y,END_Y,MID_Y,QUARTER_Y};
+							dirt_light.add(new Polygon(x4TM,y4TM,4));
+						} else { //triangle into none
+							int[] x4TM = {MID_X,END_X,END_X};
+							int[] y4TM = {END_Y,END_Y,MID_Y};
+							dirt_light.add(new Polygon(x4TM,y4TM,3));
+						}
 					}
 				}
 				//Middle Dark Dirt
-				if (into_down){
+				if (into_down || DOWN == Sprite.ID_GRASS_MM){ //Into Down or Down is dirt
 					if (into_downleft){ //rhombus into down and downleft
-						int[] x5TM = {(DRAW_X - HALF_BLOCKSIZE),(DRAW_X - QUARTER_BLOCKSIZE),END_X,THREE_X};
-						int[] y5TM = {(END_Y + HALF_BLOCKSIZE),(END_Y + HALF_BLOCKSIZE + QUARTER_BLOCKSIZE),MID_Y,QUARTER_Y};
-						dirt_dark.add(new Polygon(x5TM,y5TM,4));
+						if (DOWNLEFT == Sprite.ID_GRASS_ML){ //deeper
+							int[] x5TM = {(DRAW_X - THREE_BLOCKSIZE),(DRAW_X - HALF_BLOCKSIZE),END_X,THREE_X};
+							int[] y5TM = {(END_Y + THREE_BLOCKSIZE),(END_Y + BLOCKSIZE),MID_Y,QUARTER_Y};
+							dirt_dark.add(new Polygon(x5TM,y5TM,4));
+						} else { //not as deep
+							int[] x5TM = {(DRAW_X - HALF_BLOCKSIZE),(DRAW_X - QUARTER_BLOCKSIZE),END_X,THREE_X};
+							int[] y5TM = {(END_Y + HALF_BLOCKSIZE),(END_Y + THREE_BLOCKSIZE),MID_Y,QUARTER_Y};
+							dirt_dark.add(new Polygon(x5TM,y5TM,4));
+						}
 					} else { //rhombus into down
-						int[] x5TM = {DRAW_X,DRAW_X,END_X,THREE_X};
-						int[] y5TM = {END_Y,(END_Y+HALF_BLOCKSIZE),MID_Y,QUARTER_Y};
-						dirt_dark.add(new Polygon(x5TM,y5TM,4));
+						if (DOWNLEFT == Sprite.ID_GRASS_MM && DOWN == Sprite.ID_GRASS_MM){//dirty
+							int[] x5TM = {(DRAW_X - QUARTER_BLOCKSIZE),DRAW_X,END_X,THREE_X};
+							int[] y5TM = {(END_Y + QUARTER_BLOCKSIZE),(END_Y + HALF_BLOCKSIZE),MID_Y,QUARTER_Y};
+							dirt_dark.add(new Polygon(x5TM,y5TM,4));
+						} else {
+							int[] x5TM = {DRAW_X,DRAW_X,END_X,THREE_X};
+							int[] y5TM = {END_Y,(END_Y + HALF_BLOCKSIZE),MID_Y,QUARTER_Y};
+							dirt_dark.add(new Polygon(x5TM,y5TM,4));
+						}
 					}
 				} else { //rhombus into none
 					int[] x5TM = {DRAW_X,MID_X,END_X,THREE_X};
@@ -643,20 +1141,26 @@ public class QuiltGenerator {
 				}
 				//Left Light Dirt
 				if (into_left){
-					if (into_downleft){ //rhombus into left and downleft
-						if (DOWNLEFT == Sprite.ID_GRASS_ML || DOWNLEFT == Sprite.ID_GRASS_BL){ //not as deep
-							int[] x6TM = {(DRAW_X - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE),(DRAW_X - HALF_BLOCKSIZE),MID_X,QUARTER_X};
-							int[] y6TM = {(END_Y + QUARTER_BLOCKSIZE),(END_Y + HALF_BLOCKSIZE),MID_Y,QUARTER_Y};
-							dirt_light.add(new Polygon(x6TM,y6TM,4));
-						} else { //can go deeper
-							int[] x6TM = {(DRAW_X - BLOCKSIZE),(DRAW_X - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE),MID_X,QUARTER_X};
-							int[] y6TM = {(END_Y + HALF_BLOCKSIZE),(END_Y + HALF_BLOCKSIZE + QUARTER_BLOCKSIZE),MID_Y,QUARTER_Y};
+					if (DOWNLEFT == Sprite.ID_GRASS_MM){ //Downleft is dirt
+						int[] x4TR = {(DRAW_X - HALF_BLOCKSIZE),(DRAW_X - QUARTER_BLOCKSIZE),MID_X,QUARTER_X};
+						int[] y4TR = {END_Y,(END_Y + QUARTER_BLOCKSIZE),MID_Y,QUARTER_Y};
+						dirt_light.add(new Polygon(x4TR,y4TR,4));
+					} else { 
+						if (into_downleft){ //rhombus into left and downleft
+							if (DOWNLEFT == Sprite.ID_GRASS_ML || DOWNLEFT == Sprite.ID_GRASS_BL){ //not as deep
+								int[] x6TM = {(DRAW_X - THREE_BLOCKSIZE),(DRAW_X - HALF_BLOCKSIZE),MID_X,QUARTER_X};
+								int[] y6TM = {(END_Y + QUARTER_BLOCKSIZE),(END_Y + HALF_BLOCKSIZE),MID_Y,QUARTER_Y};
+								dirt_light.add(new Polygon(x6TM,y6TM,4));
+							} else { //can go deeper
+								int[] x6TM = {(DRAW_X - BLOCKSIZE),(DRAW_X - THREE_BLOCKSIZE),MID_X,QUARTER_X};
+								int[] y6TM = {(END_Y + HALF_BLOCKSIZE),(END_Y + THREE_BLOCKSIZE),MID_Y,QUARTER_Y};
+								dirt_light.add(new Polygon(x6TM,y6TM,4));
+							}
+						} else { //rhombus into left
+							int[] x6TM = {(DRAW_X - HALF_BLOCKSIZE),DRAW_X,MID_X,QUARTER_X};
+							int[] y6TM = {END_Y,END_Y,MID_Y,QUARTER_Y};
 							dirt_light.add(new Polygon(x6TM,y6TM,4));
 						}
-					} else { //rhombus into left
-						int[] x6TM = {(DRAW_X - HALF_BLOCKSIZE),DRAW_X,MID_X,QUARTER_X};
-						int[] y6TM = {END_Y,END_Y,MID_Y,QUARTER_Y};
-						dirt_light.add(new Polygon(x6TM,y6TM,4));
 					}
 				} else { //rhombus into none
 					int[] x6TM = {DRAW_X,DRAW_X,MID_X,QUARTER_X};
@@ -700,20 +1204,26 @@ public class QuiltGenerator {
 				}
 				//Left Light Dirt
 				if (into_left){
-					if (into_downleft){ //rhombus into left and downleft
-						if (DOWNLEFT == Sprite.ID_GRASS_BM){ //deeper
-							int[] x4TR = {(DRAW_X - BLOCKSIZE),(DRAW_X - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE),MID_X,QUARTER_X};
-							int[] y4TR = {(END_Y + HALF_BLOCKSIZE),(END_Y + HALF_BLOCKSIZE + QUARTER_BLOCKSIZE),MID_Y,QUARTER_Y};
-							dirt_light.add(new Polygon(x4TR,y4TR,4));
-						} else { //not as deep
-							int[] x4TR = {(DRAW_X - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE),(DRAW_X - HALF_BLOCKSIZE),MID_X,QUARTER_X};
-							int[] y4TR = {(END_Y + QUARTER_BLOCKSIZE),(END_Y + HALF_BLOCKSIZE),MID_Y,QUARTER_Y};
+					if (DOWNLEFT == Sprite.ID_GRASS_MM){ //Downleft is dirt
+						int[] x4TR = {(DRAW_X - HALF_BLOCKSIZE),(DRAW_X - QUARTER_BLOCKSIZE),MID_X,QUARTER_X};
+						int[] y4TR = {END_Y,(END_Y + QUARTER_BLOCKSIZE),MID_Y,QUARTER_Y};
+						dirt_light.add(new Polygon(x4TR,y4TR,4));
+					} else { 
+						if (into_downleft){ //rhombus into left and downleft
+							if (DOWNLEFT == Sprite.ID_GRASS_BM){ //deeper
+								int[] x4TR = {(DRAW_X - BLOCKSIZE),(DRAW_X - THREE_BLOCKSIZE),MID_X,QUARTER_X};
+								int[] y4TR = {(END_Y + HALF_BLOCKSIZE),(END_Y + THREE_BLOCKSIZE),MID_Y,QUARTER_Y};
+								dirt_light.add(new Polygon(x4TR,y4TR,4));
+							} else { //not as deep
+								int[] x4TR = {(DRAW_X - THREE_BLOCKSIZE),(DRAW_X - HALF_BLOCKSIZE),MID_X,QUARTER_X};
+								int[] y4TR = {(END_Y + QUARTER_BLOCKSIZE),(END_Y + HALF_BLOCKSIZE),MID_Y,QUARTER_Y};
+								dirt_light.add(new Polygon(x4TR,y4TR,4));
+							}
+						} else { //rhombus into left only
+							int[] x4TR = {(DRAW_X - HALF_BLOCKSIZE),DRAW_X,MID_X,QUARTER_X};
+							int[] y4TR = {END_Y,END_Y,MID_Y,QUARTER_Y};
 							dirt_light.add(new Polygon(x4TR,y4TR,4));
 						}
-					} else { //rhombus into left only
-						int[] x4TR = {(DRAW_X - HALF_BLOCKSIZE),DRAW_X,MID_X,QUARTER_X};
-						int[] y4TR = {END_Y,END_Y,MID_Y,QUARTER_Y};
-						dirt_light.add(new Polygon(x4TR,y4TR,4));
 					}
 				} else { //rhombus into none
 					int[] x4TR = {DRAW_X,DRAW_X,MID_X,QUARTER_X};
@@ -722,20 +1232,26 @@ public class QuiltGenerator {
 				}
 				//Right Dark Dirt
 				if (into_down){
-					if (into_downleft){ //rhombus into down and downleft
-						if (DOWNLEFT == Sprite.ID_GRASS_ML){ //deeper
-							int[] x5TR = {(DRAW_X - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE),(DRAW_X - HALF_BLOCKSIZE),THREE_X,MID_X};
-							int[] y5TR = {(END_Y + HALF_BLOCKSIZE + QUARTER_BLOCKSIZE),(END_Y + BLOCKSIZE),THREE_Y,MID_Y};
-							dirt_dark.add(new Polygon(x5TR,y5TR,4));
-						} else { //not as deep
-							int[] x5TR = {(DRAW_X - HALF_BLOCKSIZE),(DRAW_X - QUARTER_BLOCKSIZE),THREE_X,MID_X};
-							int[] y5TR = {(END_Y + HALF_BLOCKSIZE),(END_Y + HALF_BLOCKSIZE + QUARTER_BLOCKSIZE),THREE_Y,MID_Y};
+					if (DOWNLEFT == Sprite.ID_GRASS_MM){ //Downleft is dirt
+						int[] x5TR = {(DRAW_X - QUARTER_BLOCKSIZE),DRAW_X,THREE_X,MID_X};
+						int[] y5TR = {(END_Y + QUARTER_BLOCKSIZE),(END_Y + HALF_BLOCKSIZE),THREE_Y,MID_Y};
+						dirt_dark.add(new Polygon(x5TR,y5TR,4));
+					} else {
+						if (into_downleft){ //rhombus into down and downleft
+							if (DOWNLEFT == Sprite.ID_GRASS_ML){ //deeper
+								int[] x5TR = {(DRAW_X - THREE_BLOCKSIZE),(DRAW_X - HALF_BLOCKSIZE),THREE_X,MID_X};
+								int[] y5TR = {(END_Y + THREE_BLOCKSIZE),(END_Y + BLOCKSIZE),THREE_Y,MID_Y};
+								dirt_dark.add(new Polygon(x5TR,y5TR,4));
+							} else { //not as deep
+								int[] x5TR = {(DRAW_X - HALF_BLOCKSIZE),(DRAW_X - QUARTER_BLOCKSIZE),THREE_X,MID_X};
+								int[] y5TR = {(END_Y + HALF_BLOCKSIZE),(END_Y + THREE_BLOCKSIZE),THREE_Y,MID_Y};
+								dirt_dark.add(new Polygon(x5TR,y5TR,4));
+							}
+						} else { //rhombus into down only
+							int[] x5TR = {DRAW_X,DRAW_X,THREE_X,MID_X};
+							int[] y5TR = {END_Y,(END_Y + HALF_BLOCKSIZE),THREE_Y,MID_Y};
 							dirt_dark.add(new Polygon(x5TR,y5TR,4));
 						}
-					} else { //rhombus into down only
-						int[] x5TR = {DRAW_X,DRAW_X,THREE_X,MID_X};
-						int[] y5TR = {END_Y,(END_Y + HALF_BLOCKSIZE),THREE_Y,MID_Y};
-						dirt_dark.add(new Polygon(x5TR,y5TR,4));
 					}
 				} else { //rhombus into none
 					int[] x5TR = {DRAW_X,MID_X,THREE_X,MID_X};
@@ -907,14 +1423,18 @@ public class QuiltGenerator {
 				if (into_up){
 					if (into_upright){ //rhombus into up and upright
 						if (UPRIGHT == Sprite.ID_GRASS_MR){ //deeper
-							int[] x4BL = {QUARTER_X,MID_X,(END_X + HALF_BLOCKSIZE + QUARTER_BLOCKSIZE),(END_X + HALF_BLOCKSIZE)};
-							int[] y4BL = {QUARTER_Y,MID_Y,(DRAW_Y - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE),(DRAW_Y - BLOCKSIZE)};
+							int[] x4BL = {QUARTER_X,MID_X,(END_X + THREE_BLOCKSIZE),(END_X + HALF_BLOCKSIZE)};
+							int[] y4BL = {QUARTER_Y,MID_Y,(DRAW_Y - THREE_BLOCKSIZE),(DRAW_Y - BLOCKSIZE)};
 							dirt_light.add(new Polygon(x4BL,y4BL,4));
 						} else { //not as deep
 							int[] x4BL = {QUARTER_X,MID_X,(END_X + HALF_BLOCKSIZE),(END_X + QUARTER_BLOCKSIZE)};
-							int[] y4BL = {QUARTER_Y,MID_Y,(DRAW_Y - HALF_BLOCKSIZE),(DRAW_Y - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE)};
+							int[] y4BL = {QUARTER_Y,MID_Y,(DRAW_Y - HALF_BLOCKSIZE),(DRAW_Y - THREE_BLOCKSIZE)};
 							dirt_light.add(new Polygon(x4BL,y4BL,4));
 						}
+					} else if (UPRIGHT == Sprite.ID_GRASS_MM){
+						int[] x4BL = {QUARTER_X,MID_X,(END_X + QUARTER_BLOCKSIZE),END_X};
+						int[] y4BL = {QUARTER_Y,MID_Y,(DRAW_Y - QUARTER_BLOCKSIZE),(DRAW_Y - HALF_BLOCKSIZE)};
+						dirt_light.add(new Polygon(x4BL,y4BL,4));
 					} else { //rhombus into up only
 						int[] x4BL = {QUARTER_X,MID_X,END_X,END_X};
 						int[] y4BL = {QUARTER_Y,MID_Y,DRAW_Y,(DRAW_Y - HALF_BLOCKSIZE)};
@@ -929,15 +1449,19 @@ public class QuiltGenerator {
 				if (into_right){
 					if (into_upright){ //rhombus into right and upright
 						if (UPRIGHT == Sprite.ID_GRASS_TR || UPRIGHT == Sprite.ID_GRASS_MR){ //not as deep
-							int[] x5BL = {MID_X,THREE_X,(END_X + HALF_BLOCKSIZE + QUARTER_BLOCKSIZE),(END_X + HALF_BLOCKSIZE)};
+							int[] x5BL = {MID_X,THREE_X,(END_X + THREE_BLOCKSIZE),(END_X + HALF_BLOCKSIZE)};
 							int[] y5BL = {MID_Y,THREE_Y,(DRAW_Y - QUARTER_BLOCKSIZE),(DRAW_Y - HALF_BLOCKSIZE)};
 							dirt_dark.add(new Polygon(x5BL,y5BL,4));
 						} else { //deeper
-							int[] x5BL = {MID_X,THREE_X,(END_X + BLOCKSIZE),(END_X + HALF_BLOCKSIZE + QUARTER_BLOCKSIZE)};
-							int[] y5BL = {MID_Y,THREE_Y,(DRAW_Y - HALF_BLOCKSIZE),(DRAW_Y - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE)};
+							int[] x5BL = {MID_X,THREE_X,(END_X + BLOCKSIZE),(END_X + THREE_BLOCKSIZE)};
+							int[] y5BL = {MID_Y,THREE_Y,(DRAW_Y - HALF_BLOCKSIZE),(DRAW_Y - THREE_BLOCKSIZE)};
 							dirt_dark.add(new Polygon(x5BL,y5BL,4));
 						}
 						
+					} else if (UPRIGHT == Sprite.ID_GRASS_MM){ //rhombus into right and dirt-upright
+						int[] x5BL = {MID_X,THREE_X,(END_X + HALF_BLOCKSIZE),(END_X + QUARTER_BLOCKSIZE)};
+						int[] y5BL = {MID_Y,THREE_Y,DRAW_Y,(DRAW_Y - QUARTER_BLOCKSIZE)};
+						dirt_dark.add(new Polygon(x5BL,y5BL,4));
 					} else { //rhombus into right only
 						int[] x5BL = {MID_X,THREE_X,(END_X + HALF_BLOCKSIZE),END_X};
 						int[] y5BL = {MID_Y,THREE_Y,DRAW_Y,DRAW_Y};
@@ -964,7 +1488,6 @@ public class QuiltGenerator {
 			drawShape(poly, Sprite.COLOR_DIRT_DARK, Sprite.COLOR_BORDER);
 		}
 	}
-
 	
 	/**
 	 * Draw Mario at the appropriate X & Y on the canvas
@@ -986,20 +1509,20 @@ public class QuiltGenerator {
 		// Left hat triangle
 		int[] x_hatLeft = {DRAW_X, DRAW_X, MID_X};
 		int[] y_hatLeft = { (DRAW_Y - HALF_BLOCKSIZE), (DRAW_Y - BLOCKSIZE),
-				(DRAW_Y - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE)};
+				(DRAW_Y - THREE_BLOCKSIZE)};
 		redShapes.add(new Polygon(x_hatLeft, y_hatLeft, 3));
 		// Middle hat triangle
 		int[] x_hatMid = {DRAW_X, MID_X, END_X};
-		int[] y_hatMid = { (DRAW_Y - BLOCKSIZE), (DRAW_Y - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE), (DRAW_Y - BLOCKSIZE)};
+		int[] y_hatMid = { (DRAW_Y - BLOCKSIZE), (DRAW_Y - THREE_BLOCKSIZE), (DRAW_Y - BLOCKSIZE)};
 		redShapes.add(new Polygon(x_hatMid, y_hatMid, 3));
 		// Right hat triangle
 		int[] x_hatRight = {END_X, END_X, MID_X};
 		int[] y_hatRight = { (DRAW_Y - HALF_BLOCKSIZE), (DRAW_Y - BLOCKSIZE),
-				(DRAW_Y - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE)};
+				(DRAW_Y - THREE_BLOCKSIZE)};
 		redShapes.add(new Polygon(x_hatRight, y_hatRight, 3));
 		// Mario's hair
 		int[] x_marioHair = {DRAW_X, MID_X, END_X};
-		int[] y_marioHair = { (DRAW_Y - HALF_BLOCKSIZE), (DRAW_Y - HALF_BLOCKSIZE - QUARTER_BLOCKSIZE),
+		int[] y_marioHair = { (DRAW_Y - HALF_BLOCKSIZE), (DRAW_Y - THREE_BLOCKSIZE),
 				(DRAW_Y - HALF_BLOCKSIZE)};
 		blackShapes.add(new Polygon(x_marioHair, y_marioHair, 3));
 		// Left face triangle
@@ -1053,7 +1576,6 @@ public class QuiltGenerator {
 		}
 	}
 
-	
 	/**
 	 * Draw a question block at XY
 	 * 
@@ -1071,8 +1593,6 @@ public class QuiltGenerator {
 	private void drawQuestionBlock(int X, int Y, int ADJ, boolean up_upright) throws IOException {
 		drawCenteredDiamondBlock(X, Y, ADJ, up_upright, Sprite.COLOR_QUESTION_BG, Sprite.COLOR_QUESTION_DIAMOND, false);
 	}
-
-	
 	
 	/**
 	 * Draw a diamond-centered block at XY
@@ -1577,7 +2097,7 @@ public class QuiltGenerator {
 			triangles.add(new Polygon(x3, y3, 3));
 			// Right rhombus (into right and upright)
 			int[] x4 = {MID_X, (END_X + QUARTER_BLOCKSIZE), (END_X + HALF_BLOCKSIZE), END_X};
-			int[] y4 = {END_Y, DRAW_Y, DRAW_Y, END_Y};
+			int[] y4 = {END_Y, (DRAW_Y - HALF_BLOCKSIZE), DRAW_Y, END_Y};
 			triangles.add(new Polygon(x4, y4, 4));
 		}
 		// right and up and not left, down, or upright
@@ -1741,26 +2261,24 @@ public class QuiltGenerator {
 
 		}
 		// if up, upright, and up-upright
-		// {TESTED}
-		/*
-		 * ____ ____ ____ | | | /\ | |____|____/ \/_| | | /\/ /\ | |____|_\/
-		 * /\/_| | | /\ / | |____|/\/_|____|
-		 */
 		if (up && upright && up_upright) {
 			// draw big rhombus across this, up, upright, and up_upright
 			int[] xthis = {MID_X, (END_X + QUARTER_BLOCKSIZE), (END_X + HALF_BLOCKSIZE), THREE_X};
 			int[] ythis = {DRAW_Y, (DRAW_Y - BLOCKSIZE - HALF_BLOCKSIZE), (DRAW_Y - BLOCKSIZE), MID_Y};
 			triangles.add(new Polygon(xthis, ythis, 4));
 		}
-		/*
-		 * TL:001 TM:002 TR:004 ML:008 { me } MR:016 BL:032 BM:064 BR:0128
-		 */
-		/*
-		 * ____ ____ ____ | /\ | /\ | /\ | |_\/_|_\/_|_\/_| | /\ | /\ | /\ |
-		 * |_\/_|_\/_|_\/_| | /\ | /\ | /\ | |_\/_|_\/_|_\/_|
-		 */
+		//upleft, up, upright, and right, not left, downleft, down, or downright
+		if (upleft && up && upright && right && !(left || downleft || down || downright)){
+			int[] xEnd = {MID_X,THREE_X,(END_X + HALF_BLOCKSIZE),END_X};
+			int[] yEnd = {DRAW_Y,MID_Y,(DRAW_Y - BLOCKSIZE),(DRAW_Y - BLOCKSIZE)};
+			triangles.add(new Polygon(xEnd,yEnd,4));			
+		}
+		
 		if (isCoin) {
-			skyPolygons.addAll(triangles);
+			if (skyDraw.equals("NONE")){ }
+			else {
+				skyPolygons.addAll(triangles);
+			}
 		} else {
 			for (Polygon trig : triangles) {
 				drawShape(trig, color_background, Sprite.COLOR_BORDER);
@@ -1769,7 +2287,6 @@ public class QuiltGenerator {
 		drawShape(middleDiamond, color_diamond, Sprite.COLOR_BORDER);
 	}
 
-	
 	/**
 	 * Draw a music block at XY
 	 * 
@@ -1868,7 +2385,7 @@ public class QuiltGenerator {
 		if (down && downleft) {
 			// Bottom left rhombus (into down and downleft)
 			int[] x1 = { (DRAW_X - QUARTER_BLOCKSIZE), QUARTER_X, MID_X, (DRAW_X - QUARTER_BLOCKSIZE)};
-			int[] y1 = { (END_Y + QUARTER_BLOCKSIZE), THREE_Y, END_Y, (END_Y + HALF_BLOCKSIZE + QUARTER_BLOCKSIZE)};
+			int[] y1 = { (END_Y + QUARTER_BLOCKSIZE), THREE_Y, END_Y, (END_Y + THREE_BLOCKSIZE)};
 			triangles.add(new Polygon(x1, y1, 4));
 		} else if (down) {
 			// Bottom left rhombus (into down)
@@ -1889,10 +2406,8 @@ public class QuiltGenerator {
 		drawShape(noteTail2, Sprite.COLOR_MUSIC_NOTE, Sprite.COLOR_BORDER);
 	}
 
-	
-	
 	/**
-	  * Draw a yellow face block or cloud at XY
+	 * Draw a yellow face block or cloud at XY
 	 * 
 	 * @param X
 	 *            The x coordinate to draw it at
@@ -2015,7 +2530,6 @@ public class QuiltGenerator {
 
 	}
 
-	
 	/**
 	 * Draw a brown face block at XY
 	 * 
@@ -2115,7 +2629,6 @@ public class QuiltGenerator {
 
 	}
 
-	
 	/**
 	 * Draw a coin at XY
 	 * 
@@ -2129,7 +2642,6 @@ public class QuiltGenerator {
 		drawCenteredDiamondBlock(X, Y, ADJ, up_upright, Sprite.COLOR_SKY, Sprite.COLOR_COIN, true);
 	}
 
-	
 	/**
 	 * Draw the cap of a vertical pipe from the left
 	 * 
@@ -2170,7 +2682,6 @@ public class QuiltGenerator {
 		}
 	}
 
-	
 	/**
 	 * Draw the cap of a horizontal pipe from the bottom
 	 * 
@@ -2212,7 +2723,6 @@ public class QuiltGenerator {
 		}
 	}
 
-	
 	/**
 	 * Draw a Vertical Pipe from the bottom left corner
 	 * 
@@ -2264,7 +2774,6 @@ public class QuiltGenerator {
 		}
 	}
 
-	
 	/**
 	 * Draw a Horizontal Pipe starting from the bottom right corner
 	 * 
@@ -2339,11 +2848,11 @@ public class QuiltGenerator {
 		int BLOCK_ID = level[Y][X];
 		int tempX = X, tempY = Y;
 		int length = 1, height = 1;
-		while (tempX > 0 && level[tempY][tempX - 1] == BLOCK_ID) {
+		while (tempX > 0 && level[tempY][tempX - 1] == BLOCK_ID){
 			length++ ;
 			tempX-- ;
 		}
-		while (tempY > 0 && rowValidAbove(X, tempY, length)) {
+		while (tempY > 0 && rowValidAbove(X, tempY, length,BLOCK_ID)) {
 			height++ ;
 			tempY-- ;
 		}
@@ -2368,11 +2877,12 @@ public class QuiltGenerator {
 	 *            The length of the strip moving left
 	 * @return Whether the strips are equivalent
 	 */
-	private boolean rowValidAbove(int X, int Y, int LENGTH) {
+	private boolean rowValidAbove(int X, int Y, int LENGTH, int ID) {
 		boolean result = true;
 		for (int i = 0; i < LENGTH; i++ ) {
 			if (X - i < 0 || Y - 1 < 0) return false;
-			result = result && (level[Y][X - i] == level[Y - 1][X - i]);
+			result = result && (level[Y-1][X-i] == ID);
+			//result = result && (level[Y][X - i] == level[Y - 1][X - i]);
 			if (result != true) {
 				return result;
 			}
@@ -2380,8 +2890,7 @@ public class QuiltGenerator {
 		return result;
 	}
 
-	// TODO: You need to optimize the polygons before you can triangulate them. Learn from your misakes Aidan.
-	// Do not suffer the same way twice. 3:00 AM Aidan believes in you. Don't let ther faith in you go to waste
+	//TODO: Optimize the sky
 	/**
 	 * Draw the sky polygons
 	 */
@@ -2434,40 +2943,90 @@ public class QuiltGenerator {
 		int marioX = -1, marioY = -1;
 		int ADJ = 0; // This integer stores whether adjacent blocks share the same ID
 		boolean up_upright = false; // Whether the block one space right and two spaces up shares the same ID as this
+		boolean skyDiamonds = skyDraw.equals("Diamonds");
 		skyPolygons = new ArrayList <Polygon>();
+		if (skyDraw.equals("NONE")){
+			int[] xCanvas = {0,(level[0].length) * BLOCKSIZE,(level[0].length) * BLOCKSIZE,0};
+			int[] yCanvas = {0,0,(level.length) * BLOCKSIZE,(level.length) * BLOCKSIZE};
+			drawShape(new Polygon(xCanvas,yCanvas,4),Sprite.COLOR_SKY,Sprite.COLOR_BORDER);
+		}
 		for (int y = 0; y < level.length; y++ ) {
 			for (int x = 0; x < level[0].length; x++ ) {
-				int thisID = level[y][x];
+				int thisID = level[y][x], tempID = -2;
 				ADJ = 0;
 				up_upright = false;
-				if (x > 0 && level[y][x - 1] == thisID) {
-					ADJ = ADJ | ML;
+				if (x > 0){
+					tempID = level[y][x - 1];
+					if ((tempID == thisID) ||
+						(skyDiamonds && ((tempID == Sprite.ID_COIN && thisID == Sprite.ID_AIR) ||
+						(tempID == Sprite.ID_AIR && thisID == Sprite.ID_COIN)))){
+						ADJ = ADJ | ML;
+					}
 				} // LEFT
-				if (x < level[0].length - 1 && level[y][x + 1] == thisID) {
-					ADJ = ADJ | MR;
+				if (x < level[0].length - 1){
+					tempID = level[y][x + 1];
+					if ((tempID == thisID) ||
+						(skyDiamonds && ((tempID == Sprite.ID_COIN && thisID == Sprite.ID_AIR) ||
+						(tempID == Sprite.ID_AIR && thisID == Sprite.ID_COIN)))){
+						ADJ = ADJ | MR;
+					}
 				} // RIGHT
-				if (y > 0 && level[y - 1][x] == thisID) {
-					ADJ = ADJ | TM;
+				if (y > 0){
+					tempID = level[y-1][x];
+					if ((tempID == thisID) ||
+						(skyDiamonds && ((tempID == Sprite.ID_COIN && thisID == Sprite.ID_AIR) ||
+						(tempID == Sprite.ID_AIR && thisID == Sprite.ID_COIN)))){
+						ADJ = ADJ | TM;
+					}
 				} // UP
-				if (y < level.length - 1 && level[y + 1][x] == thisID) {
-					ADJ = ADJ | BM;
+				if (y < level.length-1){
+					tempID = level[y+1][x];
+					if ((tempID == thisID) ||
+						(skyDiamonds && ((tempID == Sprite.ID_COIN && thisID == Sprite.ID_AIR) ||
+						(tempID == Sprite.ID_AIR && thisID == Sprite.ID_COIN)))){
+						ADJ = ADJ | BM;
+					}
 				} // DOWN
-				if (y > 0 && x > 0 && level[y - 1][x - 1] == thisID) {
-					ADJ = ADJ | TL;
+				if (y > 0 && x > 0){
+					tempID = level[y-1][x-1];
+					if ((tempID == thisID) ||
+						(skyDiamonds && ((tempID == Sprite.ID_COIN && thisID == Sprite.ID_AIR) ||
+						(tempID == Sprite.ID_AIR && thisID == Sprite.ID_COIN)))){
+						ADJ = ADJ | TL;
+					}
 				} // UPLEFT
-				if (y > 0 && x < level[0].length - 1 && level[y - 1][x + 1] == thisID) {
-					ADJ = ADJ | TR;
+				if (y > 0 && x < level[0].length - 1){
+					tempID = level[y-1][x+1];
+					if ((tempID == thisID) ||
+						(skyDiamonds && ((tempID == Sprite.ID_COIN && thisID == Sprite.ID_AIR) ||
+						(tempID == Sprite.ID_AIR && thisID == Sprite.ID_COIN)))){
+						ADJ = ADJ | TR;
+					}
 				} // UPRIGHT
-				if (y < level.length - 1 && x > 0 && level[y + 1][x - 1] == thisID) {
-					ADJ = ADJ | BL;
+				if (y < level.length - 1 && x > 0){
+					tempID = level[y+1][x-1];
+					if ((tempID == thisID) ||
+						(skyDiamonds && ((tempID == Sprite.ID_COIN && thisID == Sprite.ID_AIR) ||
+						(tempID == Sprite.ID_AIR && thisID == Sprite.ID_COIN)))){
+						ADJ = ADJ | BL;
+					}
 				} // DOWNLEFT
-				if (y < level.length - 1 && x < level[0].length - 1 && level[y + 1][x + 1] == thisID) {
-					ADJ = ADJ | BR;
+				if (y < level.length - 1 && x < level[0].length - 1){
+					tempID = level[y+1][x];
+					if ((tempID == thisID) ||
+						(skyDiamonds && ((tempID == Sprite.ID_COIN && thisID == Sprite.ID_AIR) ||
+						(tempID == Sprite.ID_AIR && thisID == Sprite.ID_COIN)))){
+						ADJ = ADJ | BR;
+					}
 				} // DOWNRIGHT
-				if (y > 1 && x < level[0].length - 1 && level[y - 2][x + 1] == thisID) {
-					up_upright = true;
+				if (y > 1 && x < level[0].length - 1){
+					tempID = level[y-2][x+1];
+					if ((tempID == thisID) ||
+						(skyDiamonds && ((tempID == Sprite.ID_COIN && thisID == Sprite.ID_AIR) ||
+						(tempID == Sprite.ID_AIR && thisID == Sprite.ID_COIN)))){
+						up_upright = true;
+					}
 				} // UPUPRIGHT
-
 				switch (thisID) {
 					case Sprite.ID_QUESTION_BLOCK: // When a question block is discovered
 						if (VERBOSE > 0) System.out.println("Question Block at (" + y + "," + x + ")");
@@ -2546,8 +3105,16 @@ public class QuiltGenerator {
 					case Sprite.ID_PIPE_HORIZ_TR: // This pipe will be drawn over but should not act as air
 						break;
 					case Sprite.ID_AIR:
-						skyPolygons.add(findUpLeftRect(x, y));
+						if (skyDraw.equals("Diamonds")){ //If drawing with centered diamonds
+							drawCenteredDiamondBlock(x,y,ADJ,up_upright,Sprite.COLOR_SKY,Sprite.COLOR_SKY,false);
+						} else if (skyDraw.equals("Dirt")){ //If drawing like dirt
+							drawLikeDirt(x,y,ADJ,Sprite.COLOR_SKY,Sprite.COLOR_SKY);
+						} else if (skyDraw.equals("Rectangles")){ //If triangulating
+							skyPolygons.add(findUpLeftRect(x, y));
+						}
 						break;
+					case Sprite.ID_ROCK:
+						drawLikeDirt(x,y,ADJ,Sprite.COLOR_ROCK_LIGHT,Sprite.COLOR_ROCK_DARK);
 					case Sprite.ID_GRASS_TL:
 					case Sprite.ID_GRASS_TM:
 					case Sprite.ID_GRASS_TR:
@@ -2573,7 +3140,7 @@ public class QuiltGenerator {
 
 		drawSky();
 
-		outputImageToFile("output.png");
+		outputImageToFile("quilt_output.png");
 	}
 
 	/**

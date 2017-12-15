@@ -81,6 +81,9 @@ public class Sprite {
 	public static final Color COLOR_GRASS_DARK = new Color(0,128,0); //008000
 	public static final Color COLOR_DIRT_LIGHT = new Color(216,160,56); //D8A038
 	public static final Color COLOR_DIRT_DARK = new Color(136,88,24); //885818
+	//Rock
+	public static final Color COLOR_ROCK_LIGHT = new Color(192,192,192); //C0C0C0
+	public static final Color COLOR_ROCK_DARK = new Color(112,112,112); //707070
 	
 	private static int M = ID_MARIO, m = ID_MUSIC_NOTE, C = ID_CLOUD, c = ID_COIN, D = ID_GRASS_MM;
 	private static int Y = ID_FACE_YELLOW, B = ID_FACE_BROWN, R = ID_ROCK, Q = ID_QUESTION_BLOCK;
@@ -93,21 +96,21 @@ public class Sprite {
 	private static int PHBL = ID_PIPE_HORIZ_BL, PHBM = ID_PIPE_HORIZ_BM, PHBR = ID_PIPE_HORIZ_BR;
 	
 	public static final int[][] TEST_LEVEL = {
-			{0, 	0,	0,		0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
-			{c, 	c,	c,		0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	c,	c,	c,	c,	c,	0},
-			{C, 	C,	C,		C,	C,	C,	C,	0,	0,	C,	C,	C,	C,	C,	C,	C,	C,	C,	C,	C,	C,	C,	C},
-			{0, 	0,	0,		0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
-			{c, 	0,	0,		0,	0,	0,	0,	0,	0,	0,	0,	m,	m,	m,	m,	0,	0,	0,	0,	0,	0,	0,	0},
-			{c, 	0,	0,		0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
-			{c, 	0,	0,		0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
-			{c, 	0,	0,		0,	0,	Y,	Y,	B,	Y,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
-			{TM,	TM,	TM,		TM,	TR,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	Y,	Q,	Y,	Y,	0,	0,	0,	0},
-			{D, 	D,	D,		D,	MR,	0,	0,	M,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
-			{D, 	D,	D,		D,	MR,	0,	0,	M,	0,	0,	Q,	Q,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
-			{D, 	D,	D,		D,	TL,	TM,	TM,	TM,	TR,	0,	0,	0,	0,	0,	TL,	TM,	TM,	TM,	TM,	TR,	0,	0,	0},
-			{D, 	PVTL,PVTR,	D,	ML,	D,	D,	D,	MR,	0,	0,	0,	0,	0,	ML,	D,	D,	D,	D,	MR,	0,	0,	0},
-			{TR,	PVML,PVMR,	TL,	TM,	TM,	TM,	TM,	TM,	TM,	TM,	TM,	TM,	TM,	D,	D,	D,	D,	D,	D,	TM,	TM,	TM},
-			{MR,	PVML,PVMR,	ML,	D,	D,	D,	D,	D,	D,	D,	D,	D,	D,	D,	D,	D,	D,	D,	D,	D,	D,	D},
+			{0, 	0,	0,		0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+			{c, 	c,	c,		0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	c,	c,	c,	c,	c,	0},
+			{C, 	C,	C,		C,	C,	C,	C,	0,	0,	C,	C,	C,	C,	C,	C,	C,	C,	C,	C,	C,	C,	C,	C,	C},
+			{0, 	0,	0,		0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+			{c, 	0,	0,		0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+			{c, 	0,	0,		0,	0,	0,	0,	0,	0,	0,	0,	0,	m,	m,	m,	m,	0,	0,	0,	0,	0,	0,	0,	0},
+			{R, 	c,	0,		0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+			{R, 	R,	0,		0,	0,	0,	Y,	Y,	B,	Y,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+			{TM,	TM,	TM,		TM,	TR,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	Y,	Q,	Y,	Y,	0,	0,	0,	0},
+			{D, 	D,	D,		D,	MR,	0,	0,	0,	M,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+			{D, 	D,	D,		D,	MR,	0,	0,	0,	M,	0,	0,	Q,	Q,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0},
+			{D, 	D,	D,		D,	TL,	TM,	TM,	TM,	TM,	TR,	0,	0,	0,	0,	0,	TL,	TM,	TM,	TM,	TM,	TR,	0,	0,	0},
+			{D, 	PVTL,PVTR,	D,	ML,	D,	D,	D,	D,	MR,	0,	0,	0,	0,	0,	ML,	D,	D,	D,	D,	MR,	0,	0,	0},
+			{TR,	PVML,PVMR,	TL,	TM,	TM,	TM,	TM,	TM,	TM,	TM,	TM,	TM,	TM,	TM,	D,	D,	D,	D,	D,	D,	TM,	TM,	TM},
+			{MR,	PVML,PVMR,	ML,	D,	D,	D,	D,	D,	D,	D,	D,	D,	D,	D,	D,	D,	D,	D,	D,	D,	D,	D,	D},
 	};
 	
 }
