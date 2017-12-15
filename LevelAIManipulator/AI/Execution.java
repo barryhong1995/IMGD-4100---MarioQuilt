@@ -29,7 +29,7 @@ public class Execution {
 			ai.importScene(rawLevelScene, maxWidth, height);
 			ai.getPlatformData();
 			System.out.println("Number of platforms found: " + ai.getLandCount());
-			System.out.println(ai.testJump(ai.getPlatformData()[2], ai.getPlatformData()[0]));
+			System.out.println(ai.testJump(ai.getPlatformData()[3], ai.getPlatformData()[5]));
 		} catch (FileNotFoundException e) {
 			// Report status that file is not found
 			System.out.println("File is missing!");

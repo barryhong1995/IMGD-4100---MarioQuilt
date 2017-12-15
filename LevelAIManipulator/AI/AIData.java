@@ -62,7 +62,11 @@ public class AIData {
 	// Test accessible by making a jump between two platforms
 	public boolean testJump(Platform startPlatform, Platform endPlatform) {
 		// Get start and end coordinates of 2 platforms
-		int xS1, xS2, xE1, xE2, y1, y2;
+		int xS1, xS2, xE1, xE2, y1, y2, tick;
+		Coordinate mario = new Coordinate(0, 0);
+		Coordinate origLoc = new Coordinate(0, 0);
+		boolean landSuccessful = false;
+		boolean collision = false;
 
 		xS1 = startPlatform.getStart().x;
 		xS2 = endPlatform.getStart().x;
@@ -77,45 +81,43 @@ public class AIData {
 
 		// Check whether the ending platform is too far
 		if ((xS2 - xE1 > 5) || (xS1 - xE2 > 5)) return false;
-
-		// Define x-bound region
-		int boundSX = xS1 < xS2 ? xS2 : xS1;
-		int boundEX = xE2 > xE1 ? xE1 : xE2;
-
-		// Determine jumping point
-		Coordinate jumpPoint = new Coordinate(0, 0);
-		if (boundSX >= xS1 && boundSX <= xE1) jumpPoint.setX(boundSX);
-		else jumpPoint.setX(boundEX);
-		jumpPoint.setY(y1 - 1);
-
-		// Try jumping at one spot at the x-bound
-		boolean landSuccessful = false;
-		boolean collision = false;
-		// Set coordinate for Mario AI
-		Coordinate mario = jumpPoint;
-		int tick = 0;
-		while (!collision) {
-			if (tick <= 4)  {
-				mario.setY(mario.y - 1);	// Rising
-			} else mario.setY(mario.y + 1);	// Falling
-			// Check whether Mario is about to land on a platform
-			for (int i = 0; i < landCount; i++) {
-				if (listPlatform[i].isPlatformPart(mario.x, mario.y)) {
-					if (checkJumpPass(levelScene[mario.x][mario.y])) {
-						if (listPlatform[i] == endPlatform) {
-							collision = true; // To exit the loop
-							landSuccessful = true;
-							break;
-						}
-					} else collision = true;
-				}
-			}
-			tick++;
-			// Fail to land on anything, break
-			if ((tick == 9) || (landSuccessful)) break;
-		}
-		if (landSuccessful) return landSuccessful;
 		
+		// Try jumping at one spot along the the start platform
+		// Put Mario at the start of the start-platform
+		mario.setX(xS1);
+		mario.setY(y1 - 1);
+		for (int i = xS1; i <= xE1; i++) {
+			tick = 0;
+			landSuccessful = false;
+			collision = false;
+			origLoc = new Coordinate(mario.x, mario.y);
+			while (!collision) {
+				if (tick <= 4) mario.setY(mario.y - 1);
+				else mario.setY(mario.y + 1);
+				// Check whether Mario is about to land on a platform
+				for (int j = 0; j < landCount; j++) {
+					if (listPlatform[j].isPlatformPart(mario.x, mario.y)) {
+						if (checkJumpPass(levelScene[mario.x][mario.y])) {
+							if (listPlatform[j].getID() == endPlatform.getID()) {
+								collision = true; // To exit the loop
+								landSuccessful = true;
+								break;
+							}
+						} else collision = true;
+					}
+				}
+				tick++;
+				// Fail to land on anything, break
+				if (tick == 9 || landSuccessful) break;
+			}
+			origLoc.setX(origLoc.x + 1);
+			mario.setX(origLoc.x);
+			mario.setY(origLoc.y);
+			if (landSuccessful) break;
+		}
+		// Return true if previous one-spot jump attempt is successful
+		if (landSuccessful) return landSuccessful;
+					
 		// Continue jumping with direction if jumping at one spot failed
 		// Determine direction of the jump
 		// 0 - LEFT, 1 - RIGHT
@@ -140,7 +142,7 @@ public class AIData {
 				tick = 0;
 				landSuccessful = false;
 				collision = false;
-				Coordinate origLoc = new Coordinate(mario.x, mario.y);
+				origLoc = new Coordinate(mario.x, mario.y);
 				while (!collision) {
 					tick++;
 					if (tick <= 4) mario.setY(mario.y - 1);
@@ -168,7 +170,6 @@ public class AIData {
 							}
 						}
 					}
-					
 					if (landSuccessful) break;
 				}
 				origLoc.setX(origLoc.x + 1);
@@ -194,7 +195,7 @@ public class AIData {
 				tick = 0;
 				landSuccessful = false;
 				collision = false;
-				Coordinate origLoc = new Coordinate(mario.x, mario.y);
+				origLoc = new Coordinate(mario.x, mario.y);
 				while (!collision) {
 					tick++;
 					if (tick < 5) mario.setY(mario.y - 1);
@@ -252,7 +253,7 @@ public class AIData {
 				tick = 0;
 				landSuccessful = false;
 				collision = false;
-				Coordinate origLoc = new Coordinate(mario.x, mario.y);
+				origLoc = new Coordinate(mario.x, mario.y);
 				while (!collision) {
 					tick++;
 					if (tick <= 4) mario.setY(mario.y - 1);
@@ -306,7 +307,7 @@ public class AIData {
 				tick = 0;
 				landSuccessful = false;
 				collision = false;
-				Coordinate origLoc = new Coordinate(mario.x, mario.y);
+				origLoc = new Coordinate(mario.x, mario.y);
 				while (!collision) {
 					tick++;
 					if (tick < 5) mario.setY(mario.y - 1);
