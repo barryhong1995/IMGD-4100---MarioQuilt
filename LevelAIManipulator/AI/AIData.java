@@ -86,34 +86,267 @@ public class AIData {
 		Coordinate jumpPoint = new Coordinate(0, 0);
 		if (boundSX >= xS1 && boundSX <= xE1) jumpPoint.setX(boundSX);
 		else jumpPoint.setX(boundEX);
-		jumpPoint.setY(y1 + 1);
+		jumpPoint.setY(y1 - 1);
 
-		// Try jumping at one spot
+		// Try jumping at one spot at the x-bound
 		boolean landSuccessful = false;
+		boolean collision = false;
 		// Set coordinate for Mario AI
 		Coordinate mario = jumpPoint;
 		int tick = 0;
-		while (!landSuccessful) {
+		while (!collision) {
 			if (tick <= 4)  {
-				mario.setX(mario.y - 1);	// Rising
-			} else mario.setX(mario.y + 1);	// Falling
+				mario.setY(mario.y - 1);	// Rising
+			} else mario.setY(mario.y + 1);	// Falling
 			// Check whether Mario is about to land on a platform
-			for (Platform p : listPlatform) {
+			for (int i = 0; i < landCount; i++) {
+				if (listPlatform[i].isPlatformPart(mario.x, mario.y)) {
+					if (checkJumpPass(levelScene[mario.x][mario.y])) {
+						if (listPlatform[i] == endPlatform) {
+							collision = true; // To exit the loop
+							landSuccessful = true;
+							break;
+						}
+					} else collision = true;
+				}
 			}
 			tick++;
 			// Fail to land on anything, break
-			if (tick == 9) break;
+			if ((tick == 9) || (landSuccessful)) break;
+		}
+		if (landSuccessful) return landSuccessful;
+		
+		// Continue jumping with direction if jumping at one spot failed
+		// Determine direction of the jump
+		// 0 - LEFT, 1 - RIGHT
+		int dir;
+		if (xS1 < xS2) dir = 1; // Jump to the right
+		else dir = 0;			// Jump to the left
+		
+		// Test jump position in forward direction
+		if (dir == 1) {
+			// Half jump
+			//   X
+			// X X X
+			// X X X
+			// X X X
+			// X X X
+			
+			// Put Mario at the start of the start-platform
+			mario.setX(xS1);
+			mario.setY(y1 - 1);
+			// Make half jump
+			for (int i = xS1; i <= xE1; i++) {
+				tick = 0;
+				landSuccessful = false;
+				collision = false;
+				Coordinate origLoc = new Coordinate(mario.x, mario.y);
+				while (!collision) {
+					tick++;
+					if (tick <= 4) mario.setY(mario.y - 1);
+					if (tick > 4) mario.setY(mario.y + 1);
+					if (tick == 4 || tick == 5) mario.setX(mario.x + 1);
+					if (tick == 9) break;
+					if (mario.y < 0) mario.y = 0;
+					
+					// Check for collision
+					for (int j = 0; j < landCount; j++) {
+						if (listPlatform[j].isPlatformPart(mario.x, mario.y)) {
+							collision = true;
+							break;
+						}
+					}
+					// Check for landing
+					if (!collision) {
+						for (int j = mario.y; j < levelHeight - 1; j++) {
+							if (checkLand(levelScene[mario.x][j + 1])) {
+								if (endPlatform.isPlatformPart(mario.x, j + 1)) {
+									landSuccessful = true;
+									collision = true; // To exit the loop
+									break;
+								} else break;
+							}
+						}
+					}
+					
+					if (landSuccessful) break;
+				}
+				origLoc.setX(origLoc.x + 1);
+				mario.setX(origLoc.x);
+				mario.setY(origLoc.y);
+				if (landSuccessful) break;
+			}
+			// Return true if previous half-jump is successful
+			if (landSuccessful) return landSuccessful;
+			
+			// Full jump
+			//     X X 
+			//   X X X X
+			//   X X X X 
+			// X X X X X X 
+			// X X X X X X 
+			
+			// Put Mario at the start of the start-platform again
+			mario.setX(xS1);
+			mario.setY(y1 - 1);
+			// Make full jump
+			for (int i = xS1; i <= xE1; i++) {
+				tick = 0;
+				landSuccessful = false;
+				collision = false;
+				Coordinate origLoc = new Coordinate(mario.x, mario.y);
+				while (!collision) {
+					tick++;
+					if (tick < 5) mario.setY(mario.y - 1);
+					if (tick > 5) mario.setY(mario.y + 1);
+					if (tick == 2 || tick == 4 || tick == 5 || tick == 6 || tick == 8) mario.setX(mario.x + 1); 
+					if (tick == 9) break;
+					if (mario.y < 0) mario.y = 0;
+					
+					// Check for collision
+					for (int j = 0; j < landCount; j++) {
+						if (listPlatform[j].isPlatformPart(mario.x, mario.y)) {
+							collision = true;
+							break;
+						}
+					}
+					// Check for landing
+					if (!collision) {
+						for (int j = mario.y; j < levelHeight - 1; j++) {
+							if (checkLand(levelScene[mario.x][j + 1])) {
+								if (endPlatform.isPlatformPart(mario.x, j + 1)) {
+									landSuccessful = true;
+									collision = true; // To exit the loop
+									break;
+								} else break;
+							}
+						}
+					}
+					
+					if (landSuccessful) break;
+				}
+				origLoc.setX(origLoc.x + 1);
+				mario.setX(origLoc.x);
+				mario.setY(origLoc.y);
+				if (landSuccessful) break;
+			}
+			
+			// Return true if previous full jump is successful
+			if (landSuccessful) return landSuccessful;
 		}
 
-		// Jumping Region:
-		// X     X X X
-		// X   X X X X X
-		// X X X X X X X X
-		// X X X X X X X X X
-		// X X X X X X X X X
+		// Test jump position in backward direction
+		if (dir == 0) {
+			// Half jump
+			//   X
+			// X X X
+			// X X X
+			// X X X
+			// X X X
 
+			// Put Mario at the end of the start-platform
+			mario.setX(xE1);
+			mario.setY(y1 - 1);
+			// Make half jump
+			for (int i = xE1; i >= xS1; i--) {
+				tick = 0;
+				landSuccessful = false;
+				collision = false;
+				Coordinate origLoc = new Coordinate(mario.x, mario.y);
+				while (!collision) {
+					tick++;
+					if (tick <= 4) mario.setY(mario.y - 1);
+					if (tick > 4) mario.setY(mario.y + 1);
+					if (tick == 4 || tick == 5) mario.setX(mario.x - 1);
+					if (tick == 9) break;
+					if (mario.y < 0) mario.y = 0;
 
-		return true;
+					// Check for collision
+					for (int j = 0; j < landCount; j++) {
+						if (listPlatform[j].isPlatformPart(mario.x, mario.y)) {
+							collision = true;
+							break;
+						}
+					}
+					// Check for landing
+					if (!collision) {
+						for (int j = mario.y; j < levelHeight - 1; j++) {
+							if (checkLand(levelScene[mario.x][j + 1])) {
+								if (endPlatform.isPlatformPart(mario.x, j + 1)) {
+									landSuccessful = true;
+									collision = true; // To exit the loop
+									break;
+								} else break;
+							}
+						}
+					}
+
+					if (landSuccessful) break;
+				}
+				origLoc.setX(origLoc.x - 1);
+				mario.setX(origLoc.x);
+				mario.setY(origLoc.y);
+				if (landSuccessful) break;
+			}
+			// Return true if previous half-jump is successful
+			if (landSuccessful) return landSuccessful;
+
+			// Full jump
+			//     X X 
+			//   X X X X
+			//   X X X X 
+			// X X X X X X 
+			// X X X X X X 
+
+			// Put Mario at the end of the start-platform again
+			mario.setX(xE1);
+			mario.setY(y1 - 1);
+			// Make full jump
+			for (int i = xE1; i >= xS1; i--) {
+				tick = 0;
+				landSuccessful = false;
+				collision = false;
+				Coordinate origLoc = new Coordinate(mario.x, mario.y);
+				while (!collision) {
+					tick++;
+					if (tick < 5) mario.setY(mario.y - 1);
+					if (tick > 5) mario.setY(mario.y + 1);
+					if (tick == 2 || tick == 4 || tick == 5 || tick == 6 || tick == 8) mario.setX(mario.x - 1); 
+					if (tick == 9) break;
+					if (mario.y < 0) mario.y = 0;
+
+					// Check for collision
+					for (int j = 0; j < landCount; j++) {
+						if (listPlatform[j].isPlatformPart(mario.x, mario.y)) {
+							collision = true;
+							break;
+						}
+					}
+					// Check for landing
+					if (!collision) {
+						for (int j = mario.y; j < levelHeight - 1; j++) {
+							if (checkLand(levelScene[mario.x][j + 1])) {
+								if (endPlatform.isPlatformPart(mario.x, j + 1)) {
+									landSuccessful = true;
+									collision = true; // To exit the loop
+									break;
+								} else break;
+							}
+						}
+					}
+					if (landSuccessful) break;
+				}
+				origLoc.setX(origLoc.x - 1);
+				mario.setX(origLoc.x);
+				mario.setY(origLoc.y);
+				if (landSuccessful) break;
+			}
+
+			// Return true if previous full jump is successful
+			if (landSuccessful) return landSuccessful;
+		}
+		
+		return landSuccessful;
 	}
 
 	// Retrieve number of land count

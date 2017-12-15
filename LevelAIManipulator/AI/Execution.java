@@ -1,7 +1,6 @@
 package AI;
 
 import java.io.*;
-import java.util.Scanner;
 
 public class Execution {
 	public static void main(String args[]) {
@@ -30,6 +29,7 @@ public class Execution {
 			ai.importScene(rawLevelScene, maxWidth, height);
 			ai.getPlatformData();
 			System.out.println("Number of platforms found: " + ai.getLandCount());
+			System.out.println(ai.testJump(ai.getPlatformData()[2], ai.getPlatformData()[0]));
 		} catch (FileNotFoundException e) {
 			// Report status that file is not found
 			System.out.println("File is missing!");
