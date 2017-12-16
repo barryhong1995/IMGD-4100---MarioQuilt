@@ -7,47 +7,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Stack;
 
-public class Grammar {
+public abstract class Grammar {
 
     Coordinate currentPos;
     TestArray t;
     Stack<Coordinate> stack;
     ArrayList<IElement> str;
     HashMap<IElement, ArrayList<IElement>> rules;
-
-    public Grammar(TestArray t){
-        this.t = t;
-        this.stack = new Stack<Coordinate>();
-        this.str = new ArrayList<IElement>();
-        this.rules = new HashMap<IElement, ArrayList<IElement>>();
-        this.currentPos = new Coordinate(5, 10);
-
-        SaveContext save = new SaveContext();
-        LoadContext load = new LoadContext();
-        MoveToPoint moveUp = new MoveToPoint(5, -2);
-        MoveToPoint moveDown = new MoveToPoint(5, 5);
-        DrawLeft drawLeft = new DrawLeft(TestArray.PLATFORM);
-        DrawRight drawRight = new DrawRight(TestArray.PLATFORM);
-        DrawUp drawUp = new DrawUp(TestArray.PLATFORM);
-        DrawDown drawDown = new DrawDown(TestArray.PLATFORM);
-        Variable var = new Variable();
-
-        ArrayList<IElement> a = new ArrayList<IElement>();
-        a.add(drawLeft);
-        a.add(drawLeft);
-        a.add(save);
-        a.add(moveUp);
-        a.add(drawLeft);
-        a.add(drawLeft);
-        a.add(var);
-        a.add(load);
-        a.add(drawLeft);
-        a.add(drawLeft);
-
-        rules.put(var, a);
-        str.add(var);
-    }
-
 
     public void runLsystem(int itr){
         for(int i = 0; i < itr; i++){
@@ -103,6 +69,30 @@ public class Grammar {
     }
 
     public void draw(int id){
-        t.setVal(currentPos.getX(), currentPos.getY(), id);
+    	int x = currentPos.getX(); int y = currentPos.getY();
+    	if(x > 0 && x < TestArray.LEVEL_WIDTH - 1 && y >= 0 && y < TestArray.LEVEL_HEIGHT){
+    		if(t.getVal(x-1, y) != TestArray.GROUND && t.getVal(x+1, y) != TestArray.GROUND &&
+    				t.getVal(x, y-1) != TestArray.GROUND){
+        		t.setVal(currentPos.getX(), currentPos.getY(), id);
+        	}
+    	}
     }
+
+	public void generate(int itr, int x, int y) {
+		
+		this.setCurrentPos(x, y);
+		
+		if(this instanceof PowerGrammar){
+			this.updatePos(0, 5);
+		}
+		
+		for(int i = 0; i < itr; i++){
+            buildOneRound();
+        }
+
+        for(IElement elt : str){
+            elt.performAction(this);
+        }
+		
+	}
 }

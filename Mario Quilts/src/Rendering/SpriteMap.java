@@ -14,6 +14,7 @@ public class SpriteMap {
         map.put(0, new Coordinate(0, 0));
         map.put(1, new Coordinate(1, 0));
         map.put(2, new Coordinate(2, 0));
+        map.put(6, new Coordinate(6, 0));
 
         map.put(14, new Coordinate(14, 0));
         map.put(15, new Coordinate(15, 0));

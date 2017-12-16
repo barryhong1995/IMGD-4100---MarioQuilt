@@ -11,6 +11,8 @@ public class TestArray {
     public static final int PLATFORM = -11; //todo: set to -11
     public static final int GROUND = -10;
     public static final int PIPE = 20;
+    public static final int BLOCK = 16;
+    public static final int QBLOCK = 21;
 
     public static final int AVG_GROUND_HEIGHT = 5;
     public static final int MAX_GROUND_OFFSET = 3;

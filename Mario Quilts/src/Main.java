@@ -5,6 +5,10 @@ import Rendering.ImageOverlay;
 import Rendering.RenderArray;
 import Rendering.TestArray;
 import LSystem.Grammar;
+import LSystem.HillGrammar;
+import LSystem.LSystemGenerator;
+import LSystem.PowerGrammar;
+import LSystem.PyramidGrammar;
 import generator.QuiltGenerator;
 import generator.Sprite;
 
@@ -15,16 +19,14 @@ public class Main {
         TestArray t = new TestArray();
         RenderArray r = new RenderArray();
         ImageOverlay overlay = new ImageOverlay(null);
-        Grammar l = new Grammar(t);
-
 
         t.buildGround();
-        l.runLsystem(3);
+        
+        LSystemGenerator g = new LSystemGenerator(t);
+        g.generate();
+        
+        t.printArray();
         r.buildRenderArray(t);
-
-        //t.printArray();
-        //System.out.println();
-        //r.printArray();
 
         int[][] tArray = t.getArray();
         int[][] rArray = r.getArray();

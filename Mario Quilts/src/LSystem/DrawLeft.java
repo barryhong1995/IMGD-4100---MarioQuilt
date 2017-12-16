@@ -8,7 +8,7 @@ public class DrawLeft implements IElement {
     }
 
     public Grammar performAction(Grammar l){
-        l.draw(type);
+    	l.draw(type);
         l.updatePos(-1, 0);
         return l;
     }

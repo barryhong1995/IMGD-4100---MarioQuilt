@@ -32,13 +32,16 @@ public class RenderArray {
                         handleGround(tArray, j, i);
                         break;
                     case TestArray.PIPE:
-                        handlePipe(tArray, j, i);
+                    	handlePipe(tArray, j, i);
                         break;
+                    case TestArray.BLOCK:
+                    	setVal(j, i, 6);
+                    	break;
                 }
             }
         }
     }
-
+    
     public void handlePipe(TestArray tArray, int x, int y){
         int ch = checkNeighbors(tArray, x, y, TestArray.PIPE);
         int adj = ch & 0xf;
