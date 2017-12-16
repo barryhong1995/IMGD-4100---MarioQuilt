@@ -6,6 +6,7 @@ public class Sprite {
 	////////////////BLOCK IDS
 	////MARIO
 	public static final int ID_MARIO = -1;
+	public static final int ID_END = -500;
 	
 	////SPECIAL BLOCKS
 	//AIR

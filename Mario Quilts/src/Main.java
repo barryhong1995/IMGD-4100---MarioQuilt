@@ -1,3 +1,6 @@
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 
 import LSystem.Coordinate;
@@ -7,6 +10,7 @@ import Rendering.TestArray;
 import LSystem.Grammar;
 import generator.QuiltGenerator;
 import generator.Sprite;
+import AI.AIData;
 
 public class Main {
 
@@ -26,7 +30,6 @@ public class Main {
         //System.out.println();
         //r.printArray();
 
-        int[][] tArray = t.getArray();
         int[][] rArray = r.getArray();
 
         
@@ -41,9 +44,54 @@ public class Main {
         
         QuiltGenerator qG = new QuiltGenerator(rArray);
         qG.generate(0,"quilt_output.png");
-        
+		
         QuiltGenerator STANDARD_GENERATION = new QuiltGenerator(Sprite.TEST_LEVEL);
 		STANDARD_GENERATION.generate(0,"standard_quilt_output.png");
+		
+		
+        
+        AIData ai = new AIData();
+        
+        try {
+			ai.convertSceneFromGeneration(rArray);
+		}
+		catch (IOException e1) {
+			e1.printStackTrace();
+		}
+        
+        char[][] rawLevelScene = new char[rArray[0].length][rArray.length];
+        
+        try{
+        	BufferedReader fileInput = new BufferedReader(new FileReader("text_output.txt"));
+        	String s;
+        	int maxWidth = 0;
+        	int height = 0;
+        	while ((s = fileInput.readLine()) != null){
+        		int width = 0;
+        		for (char c : s.toCharArray()){
+        			if (c!= ' '){
+        				rawLevelScene[width][height] = c;
+        				width++;
+        				System.out.print(c + " ");
+        				System.out.flush();
+        			}
+        		}
+        		if (width > maxWidth) maxWidth = width;
+        		height++;
+        	}
+        	fileInput.close();
+        	//Report status that file is read
+        	System.out.println("File is imported successfully!");
+        	ai.importScene(rawLevelScene, maxWidth, height);
+        	ai.getPlatformData();
+			System.out.println("Number of platforms found: " + ai.getLandCount());
+        } catch (FileNotFoundException e) {
+			// Report status that file is not found
+			System.out.println("File is missing!");
+		} catch (IOException e) {
+			// Report error of file
+			System.out.println("File cannot be read!");
+		}
 
 
     }

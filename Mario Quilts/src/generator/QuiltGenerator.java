@@ -48,6 +48,9 @@ public class QuiltGenerator {
 					case Sprite.ID_DIRT3:
 						level[i][j] = Sprite.ID_GRASS_MM;
 						break;
+					case Sprite.ID_END:
+						level[i][j] = Sprite.ID_AIR;
+						break;
 					default:
 						break;
 				}
@@ -76,6 +79,9 @@ public class QuiltGenerator {
 					case Sprite.ID_DIRT2:
 					case Sprite.ID_DIRT3:
 						level[i][j] = Sprite.ID_GRASS_MM;
+						break;
+					case Sprite.ID_END:
+						level[i][j] = Sprite.ID_AIR;
 						break;
 					default:
 						break;
