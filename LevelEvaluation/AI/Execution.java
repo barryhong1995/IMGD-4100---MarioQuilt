@@ -1,15 +1,18 @@
 package AI;
 
 import java.io.*;
-import java.util.Scanner;
 
 public class Execution {
 	public static void main(String args[]) {
 		char[][] rawLevelScene = new char[1000][1000];
+		Platform[] platforms = new Platform[1000];
 		AIData ai = new AIData();
 		try {
 			// Read level data from file
-			BufferedReader fileInput = new BufferedReader(new FileReader("./LevelAIManipulator/TestLevel/testLevel.txt"));
+			BufferedReader fileInput = new BufferedReader(new FileReader("./LevelEvaluation/TestLevel/testLevel_Simple.txt"));
+			// Print out result from console
+			PrintStream out = new PrintStream(new FileOutputStream("level_evaluation.txt"));
+			System.setOut(out);
 			String s;
 			int maxWidth = 0;
 			int height = 0;
@@ -28,8 +31,21 @@ public class Execution {
 			// Report status that file is read
 			System.out.println("File is imported successfully!");
 			ai.importScene(rawLevelScene, maxWidth, height);
-			ai.getPlatformData();
+			platforms = ai.getPlatformData();
 			System.out.println("Number of platforms found: " + ai.getLandCount());
+			System.out.println("Branch System of Platforms:");
+			for (int i = 0; i < ai.getLandCount(); i++) {
+				System.out.print("Platform " + platforms[i].getID() + ": ");
+				for (int j = 0; j < platforms[i].getAccessCount(); j++) {
+					System.out.print(platforms[i].getAccessList()[j] + " ");
+				}
+				System.out.println();
+			}
+			if (ai.testClearLevel()) {
+				System.out.println("Level can be cleared!");
+				System.out.println("Number of paths: " + ai.getPathCount());
+				System.out.println(ai.getPossiblePaths());
+			} else System.out.println("Level cannot be cleared!");
 		} catch (FileNotFoundException e) {
 			// Report status that file is not found
 			System.out.println("File is missing!");

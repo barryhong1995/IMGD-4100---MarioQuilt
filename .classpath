@@ -2,7 +2,7 @@
 <classpath>
 	<classpathentry kind="src" path="LevelGenerator/src"/>
 	<classpathentry kind="src" path="QuiltGenerator"/>
-	<classpathentry kind="src" path="LevelAIManipulator"/>
+	<classpathentry kind="src" path="LevelEvaluation"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="LevelGenerator/out/production/ImageDraw"/>
 </classpath>

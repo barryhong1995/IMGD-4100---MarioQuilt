@@ -1,6 +1,0 @@
-O O O O O O O O O O 
-O O O O O O O O O O 
-O O O O O O O O O O 
-S O O O O O O O O E 
-L L L L L L L L L L
-O O O O O O O O O O
